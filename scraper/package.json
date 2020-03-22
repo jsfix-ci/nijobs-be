@@ -1,7 +1,7 @@
 {
   "name": "stackoverflow-scraper",
   "version": "1.0.0",
-  "description": "Scrapers for nijobs database",
+  "description": "Scraper for StackOverflow jobs",
   "main": "src/index.js",
   "scripts": {
     "scrap": "node src/scrap.js scrap-nijobs",
@@ -10,8 +10,7 @@
     "stats-raw": "./so/stats.bash raw",
     "hydrate": "node src/hydrate.js",
     "join": "./sh/join.bash nijobs",
-    "join-raw": "./sh/join.bash raw",
-    "tech-companies": "./github/tech-companies-portugal.sh"
+    "join-raw": "./sh/join.bash raw"
   },
   "repository": {
     "type": "git",

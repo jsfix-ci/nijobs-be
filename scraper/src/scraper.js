@@ -1,5 +1,3 @@
-
-
 /**
  * A scraper for https://stackoverflow.com/jobs
  * with hooks for hydrating (adjusting) the raw mined data, writing files,
@@ -86,7 +84,7 @@ function sortById({ id: id1 }, { id: id2 }) {
 /**
  * Mine raw data from the cheerio representations
  *
- * @param {Object}           arg
+ * @param {Object}        arg
  * @param {String}        arg.id   - job's stackoverflow id
  * @param {CheerioStatic} arg.job$ - cheerio for job's details page
  * @param {Cheerio}       arg.row$ - cheerio for job's row in listing page
@@ -98,14 +96,21 @@ function scrapData({ id, job$, row$ }) {
     const footer = row$.find("div.fs-caption > div:contains(' ago')");
 
     // in the details page...
-    const titleLink = job$("#content h1 > a[title]");
-    const aboutHeader = job$("#content h2:icontains('About this job')");
-    const techHeader = job$("#content h2:icontains('Technologies')");
-    const descrHeader = job$("#content h2:contains('Job description')");
+    const titleLink = job$("#mainbar h1 > a[title]");
+    const aboutHeader = job$("#mainbar h2:icontains('About this job')");
+    const techHeader = job$("#mainbar h2:icontains('Technologies')");
+    const descrHeader = job$("#mainbar h2:icontains('Job description')");
+    const logoLink = job$("#mainbar header.job-details--header a[href]:has(img)");
 
     const title = titleLink.text().trim();
     const companyName = sub.eq(0).text().trim();
     const location = sub.eq(1).text().trim();
+    const companyUri = logoLink.attr("href");
+    const companyNick = () => {
+        const match = /^\/jobs\/companies\/([^/]+)/.exec(companyUri);
+        if (!match) return null;
+        return match[1];
+    };
 
     const aboutFn = (label) => aboutHeader.next()
         .find(`div.mb8 span:contains('${label}')`).next()
@@ -127,6 +132,8 @@ function scrapData({ id, job$, row$ }) {
         id: ID_PREFIX + id,
         title: title,
         companyName: companyName,
+        companyUri: companyUri,
+        companyNick: companyNick(),
         location: location,
         jobType: aboutFn("Job type"),
         role: aboutFn("Role"),
@@ -405,7 +412,7 @@ async function scrapStackOverflow({
         const offers = { offers: keyBy(processed, "id") };
         writePages(offers, pg);
         return offers;
-    }))).catch(console.error);
+    })));
 
     // remove nulls | sort | uniq
     const processed = results
