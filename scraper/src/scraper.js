@@ -170,18 +170,20 @@ function getRowsFromListings(listing$, pg) {
 /**
  * Handle a fetch error
  */
-function fetchError(err, endpoint) {
-    console.error(`Request error fetching ${endpoint}`);
-    if (err.response) {
-        if (err.response.status === 429) {
-            console.error("Received 429 Too Many Requests. Bailing...");
+function fetchError(err) {
+    const time = new Date().toISOString();
+    console.error(`\n${time}  GET ${err.config.url}`);
+    console.error(err.config.params);
+    console.error(`${err.code}: ${err.message}`);
 
-            const retry = err.response.headers["retry-after"];
-            if (retry > 0)
-                console.info(`Note: asked to retry after ${retry} seconds`);
+    if (err.response && err.response.status === 429) {
+        console.error("Received 429 Too Many Requests. Bailing...");
 
-            process.exit(2);
-        }
+        const retry = err.response.headers["retry-after"];
+        if (retry > 0)
+            console.info(`Note: asked to retry after ${retry} seconds`);
+
+        process.exit(2);
     }
     return null;
 }
@@ -203,7 +205,7 @@ async function fetchDetails(id, more = {}) {
 
         return cheerio.load(jobHTML);
     } catch (err) {
-        return fetchError(err, "details");
+        return fetchError(err);
     }
 }
 
@@ -224,7 +226,7 @@ async function fetchListing(pg, more = {}) {
 
         return cheerio.load(listingsHTML);
     } catch (err) {
-        return fetchError(err, "listing");
+        return fetchError(err);
     }
 }
 
@@ -302,18 +304,17 @@ function getNumPages(pages) {
 function makeProgressCallbacks() {
     let actual = 0, total = 0;
     let actualPages = 0, totalPages = 0;
-    let failed = 0;
+    let failed = 0, failedPages = 0;
 
-    // increment actual, print progress
     const print = (allownl = true) => {
         const a = actual, t = total;
         const ap = actualPages, tp = totalPages;
-        const f = failed;
+        const f = failed, fp = failedPages;
         const nl = (allownl && a === t) ? "\n" : "";
 
-        if (process.stdout.isTTY)
-            process.stdout.write(
-                `\rMining... (${ap}/${tp}  ${a}/${t}  fail:${f})${nl}\r`
+        if (process.stderr.isTTY)
+            process.stderr.write(
+                `\rMining... (${ap}/${tp}p  ${a}/${t}j)  failed: ${fp}p  ${f}j${nl}\r`
             );
     };
     const endJob = () => {
@@ -333,12 +334,18 @@ function makeProgressCallbacks() {
         ++actualPages;
         print();
     };
+    const failListing = () => {
+        ++actualPages;
+        ++failedPages;
+        print();
+    };
     const setNumPages = (num) => {
         totalPages = num;
         actual = total = actualPages = failed = 0;
     };
 
-    return { endJob, failJob, addListing, endListing, setNumPages };
+    return { endJob, failJob, addListing, endListing, failListing,
+        setNumPages };
 }
 
 const DEFAULT_HYDRATOR = (offer) => offer;
@@ -373,8 +380,8 @@ async function scrapStackOverflow({
     concurrentDetailsRequests = MAX_CONCURRENT_DETAILS_REQUESTS,
 } = {}) {
     const pagesList = getNumPages(pages);
-    const { endJob, failJob, addListing,
-        endListing, setNumPages } = makeProgressCallbacks();
+    const { endJob, failJob, addListing, endListing, failListing,
+        setNumPages } = makeProgressCallbacks();
     setNumPages(pagesList.length);
 
     const llimit = plimit(concurrentListingRequests);
@@ -388,7 +395,7 @@ async function scrapStackOverflow({
         // scrap all jobs in the listing
         const entries = getRowsFromListings(listing$);
         addListing(entries.length);
-        if (entries.length === 0) return endListing();
+        if (entries.length === 0) return failListing();
 
 
         // fetch all entries; scrap job details into offers
