@@ -1,0 +1,30 @@
+{
+  "name": "stackoverflow-scraper",
+  "version": "1.0.0",
+  "description": "Scrapers for nijobs database",
+  "main": "src/index.js",
+  "scripts": {
+    "scrap": "node src/scrap.js scrap-nijobs",
+    "scrap-raw": "node src/scrap.js scrap-raw",
+    "stats": "./so/stats.bash nijobs",
+    "stats-raw": "./so/stats.bash raw",
+    "hydrate": "node src/hydrate.js",
+    "join": "./sh/join.bash nijobs",
+    "join-raw": "./sh/join.bash raw",
+    "tech-companies": "./github/tech-companies-portugal.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NIAEFEUP/nijobs-be.git",
+    "directory": "scraper"
+  },
+  "author": "NIAEFEUP",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "axios": "^0.19.2",
+    "cheerio": "^1.0.0-rc.3",
+    "mkdirp": "^1.0.3",
+    "p-limit": "^2.2.2",
+    "yaml": "^1.8.2"
+  }
+}
