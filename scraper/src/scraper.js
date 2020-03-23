@@ -373,7 +373,7 @@ async function scrapStackOverflow({
             .filter((elem) => elem)
             .sort(sortById);
 
-        const offers = { offers: keyBy(processed, "id") };
+        const offers = keyBy(processed, "id");
         writePages(offers, pg);
         return offers;
     })));
@@ -384,7 +384,7 @@ async function scrapStackOverflow({
         .sort(sortById)
         .filter((elem, i, arr) => i === arr.indexOf(elem));
 
-    const offers = { offers: keyBy(processed, "id") };
+    const offers = keyBy(processed, "id");
     return offers;
 }
 
