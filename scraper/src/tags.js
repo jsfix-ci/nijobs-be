@@ -1,11 +1,11 @@
-"use strict";
-
 const fs = require("fs");
-const mkdirp = require("mkdirp");
+const config = require("./config");
+const files = require("./files");
 
 // default files to write tag statistics to
-const MAPPED_TAGS_DUMP_FILE = "output/stats/mapped_tags";
-const UNKNOWN_TAGS_DUMP_FILE = "output/stats/unknown_tags";
+const MAPPED_TAGS_DUMP_FILE = "stats/mapped_tags";
+const UNKNOWN_TAGS_DUMP_FILE = "stats/unknown_tags";
+const TAGS_MAPPING_FILE = "hydrate/tags";
 
 const ignoreTags = new Set([
     "3d", "agile", "ads", "git", "scrum", "api", "architecture",
@@ -13,8 +13,6 @@ const ignoreTags = new Set([
     "oop", "sysadmin", "webservices", "userinterface", "embedded",
     "rest", "design",
 ]);
-
-const TAGS_MAPPING_FILE = "hydrate/tags";
 
 // *****
 
@@ -79,16 +77,14 @@ function loadTags() {
         tagsMap[tag] = parsedMap[tag];
 }
 
-function writeReport({
-    mappedFile = MAPPED_TAGS_DUMP_FILE,
-    unknownFile = UNKNOWN_TAGS_DUMP_FILE,
-} = {}) {
+function writeReport() {
+    const folder = config.OUTPUT_FOLDER;
+    const mappedFile = `${folder}/${MAPPED_TAGS_DUMP_FILE}`;
+    const unknownFile = `${folder}/${UNKNOWN_TAGS_DUMP_FILE}`;
     const mappedData = mapToUniqString(mappedTracker);
     const unknownData = mapToUniqString(unknownTracker);
-    const path1 = mappedFile.substring(0, mappedFile.lastIndexOf("/"));
-    const path2 = unknownFile.substring(0, unknownFile.lastIndexOf("/"));
-    mkdirp.sync(path1);
-    mkdirp.sync(path2);
+    files.makeFolderFor(mappedFile);
+    files.makeFolderFor(unknownFile);
     fs.writeFileSync(mappedFile, mappedData);
     fs.writeFileSync(unknownFile, unknownData);
 }

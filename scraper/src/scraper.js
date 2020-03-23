@@ -7,43 +7,24 @@
  */
 "use strict";
 
-const fs = require("fs");
-const mkdirp = require("mkdirp");
 const axios = require("axios").default;
 const plimit = require("p-limit").default;
 const cheerio = require("cheerio");
-const YAML = require("yaml");
 
-// Query parameters for listing pages
-// l   ->  Location
-// d   ->  Distance to location
-// u   ->  Units of distance
-// r   ->  Allow remote
-// j   ->  Type: ['internship' 'permanent' 'contract']
-// dr  ->  Developer Role (see below)
-const COMMON_QUERY_PARAMETERS = {
-//    l: "Portugal",
-//    d: 20,
-//    u: "Km",
-//    r: true,
-//    j: "internship"
-//    dr: "BackendDeveloper"
-};
-const DEFAULT_PAGES = 10;
+const config = require("./config");
 
-// careful, we don't want to get blacklisted by stackoverflow.
-const MAX_CONCURRENT_LISTING_REQUESTS = 20;
-const MAX_CONCURRENT_DETAILS_REQUESTS = 40;
-const TIMEOUT = 120000;
+const { writeJSONandYAML } = require("./files");
+
+const REQUIRED_QUERY_PARAMS = {};
+const REQUIRED_QUERY_PARAMS_DETAILS = {};
 
 const ID_PREFIX = "so_";
-const DEFAULT_PAGE_DUMP_FOLDER = "output/raw/pages";
 
 // *****
 
 const stackoverflow = axios.create({
     baseURL: "https://stackoverflow.com",
-    timeout: TIMEOUT,
+    timeout: config.SCRAP_TIMEOUT,
     method: "GET",
 });
 
@@ -73,7 +54,7 @@ function sortById({ id: id1 }, { id: id2 }) {
  * @param {Object}           cheerio
  * @property {CheerioStatic} cheerio.job$ - cheerio for the details page
  * @property {Cheerio}       cheerio.row$ - row cheerio for the listings page
- * @returns {Offer} A proper, hydrated offer
+ * @returns {Offer|RawOffer}
  */
 
 /**
@@ -153,6 +134,7 @@ function scrapData({ id, job$, row$ }) {
  * Get a Cheerio for each job in the listing page
  *
  * @param {CheerioStatic} listing$ - Listing page cheerio
+ * @param {Number} pg - Page number
  * @returns {Object[]}
  */
 function getRowsFromListings(listing$, pg) {
@@ -172,9 +154,9 @@ function getRowsFromListings(listing$, pg) {
  */
 function fetchError(err) {
     const time = new Date().toISOString();
-    console.error(`\n${time}  GET ${err.config.url}`);
+    console.error(`\n\n${time}  GET ${err.config.url}`);
     console.error(err.config.params);
-    console.error(`${err.code}: ${err.message}`);
+    console.error(`${err.code}: ${err.message}\n`);
 
     if (err.response && err.response.status === 429) {
         console.error("Received 429 Too Many Requests. Bailing...");
@@ -192,12 +174,12 @@ function fetchError(err) {
  * Fetch job details, https://stackoverflow.com/jobs/$id
  *
  * @param {String} id - Job id
- * @param {Object} more - More query parameters
  * @returns ?CheerioStatic
  */
-async function fetchDetails(id, more = {}) {
+async function fetchDetails(id) {
     const url = `/jobs/${id}`;
-    const params = { ...more };
+    const params = { ...REQUIRED_QUERY_PARAMS_DETAILS,
+        ...config.SCRAP_QUERY_PARAMS_DETAILS };
 
     try {
         const jobHTML = await stackoverflow.get(url, { params })
@@ -213,12 +195,12 @@ async function fetchDetails(id, more = {}) {
  * Fetch one listing page, https://stackoverflow.com/jobs?pg=$pg
  *
  * @param {Number} pg - Page number
- * @param {Object} more - More query parameters
  * @returns ?CheerioStatic
  */
-async function fetchListing(pg, more = {}) {
+async function fetchListing(pg) {
     const url = "/jobs";
-    const params = { ...COMMON_QUERY_PARAMETERS, ...more, pg };
+    const params = { ...REQUIRED_QUERY_PARAMS,
+        ...config.SCRAP_QUERY_PARAMS, pg };
 
     try {
         const listingsHTML = await stackoverflow.get(url, { params })
@@ -234,7 +216,7 @@ async function fetchListing(pg, more = {}) {
  * Fetch the job details from the given id, scrap the data and hydrate it
  *
  * @param {Hydrator} hydrator
- * @returns {?Offer} A proper, hydrated offer, if successful
+ * @returns {null|Offer|RawOffer}
  */
 async function fetchScrapHydrate(hydrator, { id, row$ }) {
     try {
@@ -254,35 +236,13 @@ async function fetchScrapHydrate(hydrator, { id, row$ }) {
     }
 }
 
-/**
- * Dump data to YAML and JSON files
- *
- * @param {Object} offers - One or more job offers
- * @param {String} folder - Dump folder
- * @param {String} basename - Dump file basename
- */
-function dumpData(offers, folder = ".", basename = "offers") {
-    mkdirp.sync(folder);
-
-    const yaml = YAML.stringify(offers);
-    fs.writeFileSync(`${folder}/${basename}.yaml`, yaml);
-
-    const json = JSON.stringify(offers);
-    fs.writeFileSync(`${folder}/${basename}.json`, json);
-}
-
-/**
- * Get intended pages from a number of pages or array of pages
- *
- * @param {Number|Number[]} pages
- * @returns {Number[]}
- */
-function getNumPages(pages) {
+function getNumPages() {
     // if we send trash page numbers to stackoverflow it won't complain.
     // usually it just answers back with page #1. We don't want to
     // deal with duplicate jobs or other such stupid nonsense.
 
     const fuckup = "PAGES should be a positive int or an array of ints";
+    const pages = config.SCRAP_PAGES;
 
     if (typeof pages === "object") {
         if (!Array.isArray(pages))
@@ -350,11 +310,15 @@ function makeProgressCallbacks() {
 
 const DEFAULT_HYDRATOR = (offer) => offer;
 
-const DEFAULT_WRITE_OFFER = (_offers) => {};
+const DEFAULT_WRITE_SINGLE = (offer) => {
+    const id = offer.id;
+    const folder = `${config.OUTPUT_FOLDER}/${config.OUTPUT_SUBFOLDER}`;
+    writeJSONandYAML(`${folder}/jobs/${id}`, offer);
+};
 
 const DEFAULT_WRITE_PAGES = (offers, pg) => {
-    const folder = `${DEFAULT_PAGE_DUMP_FOLDER}/${pg}`;
-    dumpData(offers, folder, "offers");
+    const folder = `${config.OUTPUT_FOLDER}/${config.OUTPUT_SUBFOLDER}`;
+    writeJSONandYAML(`${folder}/pages/${pg}/offers`, offers);
 };
 
 /**
@@ -362,34 +326,27 @@ const DEFAULT_WRITE_PAGES = (offers, pg) => {
  *
  * Exits the process if 429 is received on any request
  *
- * @param {Object}          args
- * @param {Number|Number[]} args.pages - The pages to fetch and scrap
- * @param {Object}          args.params - Query parameters for fetch
- * @param {Hydrator}        args.hydrator - Hydrate callback
- * @param {Writer} args.writeOffer - Callback to write individual offers
- * @param {Writer} args.writePages - Callback to write offers from one page
- * @returns {Offer[]} Array of proper, hydrated offers
+ * @param {Object}   args
+ * @param {Hydrator} args.hydrator - Hydrate callback
+ * @param {Writer}   args.writeSingle - Callback to write individual offers
+ * @param {Writer}   args.writePages - Callback to write offers from one page
  */
 async function scrapStackOverflow({
-    pages = DEFAULT_PAGES,
-    params = {},
     hydrator = DEFAULT_HYDRATOR,
-    writeOffer = DEFAULT_WRITE_OFFER,
+    writeSingle = DEFAULT_WRITE_SINGLE,
     writePages = DEFAULT_WRITE_PAGES,
-    concurrentListingRequests = MAX_CONCURRENT_LISTING_REQUESTS,
-    concurrentDetailsRequests = MAX_CONCURRENT_DETAILS_REQUESTS,
 } = {}) {
-    const pagesList = getNumPages(pages);
+    const pages = getNumPages();
     const { endJob, failJob, addListing, endListing, failListing,
         setNumPages } = makeProgressCallbacks();
-    setNumPages(pagesList.length);
+    setNumPages(pages.length);
 
-    const llimit = plimit(concurrentListingRequests);
-    const dlimit = plimit(concurrentDetailsRequests);
+    const llimit = plimit(config.SCRAP_CONCURRENT_LISTING_REQUESTS);
+    const dlimit = plimit(config.SCRAP_CONCURRENT_DETAILS_REQUESTS);
 
     // fetch scrap all pages
-    const results = await Promise.all(pagesList.map((pg) => llimit(async () => {
-        const listing$ = await fetchListing(pg, params);
+    const results = await Promise.all(pages.map((pg) => llimit(async () => {
+        const listing$ = await fetchListing(pg);
         if (!listing$) return endListing();
 
         // scrap all jobs in the listing
@@ -405,7 +362,7 @@ async function scrapStackOverflow({
                 if (!offer) return failJob();
 
                 endJob();
-                writeOffer(offer);
+                writeSingle(offer);
                 return offer;
             })
         )));
