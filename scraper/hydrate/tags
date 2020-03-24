@@ -1,6 +1,6 @@
 # StackOverflow tags -> nijobs TechnologyType
 #   Parsed by tags.js
-# Format: "$$nijobs-technology-type = $so-tag..."
+# Format: "$nijobs-technology-type = $so-tag..."
 
 Ada                      =  ada
 Android                  =  android
@@ -103,6 +103,7 @@ Swift                    =  swift
 Swing                    =  swing swingx
 Symfony                  =  symfony
 Tensorflow               =  tensorflow
+Terraform                =  terraform
 TypeScript               =  typescript
 Unity                    =  unity
 Unreal Engine            =  unrealengine

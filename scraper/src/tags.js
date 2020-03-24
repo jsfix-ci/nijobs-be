@@ -1,10 +1,11 @@
+// Deal with StackOverflow tags, and map them to nijobs TechnologyType
 const fs = require("fs");
-const config = require("./config");
-const files = require("./files");
+const {
+    makeFolderFor,
+    mapToUniqString,
+    parseMultimapFile,
+} = require("./files");
 
-// default files to write tag statistics to
-const MAPPED_TAGS_DUMP_FILE = "stats/mapped_tags";
-const UNKNOWN_TAGS_DUMP_FILE = "stats/unknown_tags";
 const TAGS_MAPPING_FILE = "hydrate/tags";
 
 const ignoreTags = new Set([
@@ -14,21 +15,8 @@ const ignoreTags = new Set([
     "rest", "design",
 ]);
 
-// *****
-
 // SO <tag> -> nijobs TechnologyType <name>
-const tagsMap = {};
-
-function mapToUniqString(map) {
-    return Array.from(map)
-        .sort(([v1, c1], [v2, c2]) => {
-            if (c1 !== c2) return c1 - c2;
-            return v1 < v2 ? -1 : 1;
-        })
-        .map(([value, count]) => [value, `${count}`.padStart(7)])
-        .map(([value, count]) => `${count} ${value}`)
-        .join("\n");
-}
+const tagsMap = loadTags();
 
 function isSubsequence(str1, str2, m, n) {
     if (m === undefined)
@@ -45,95 +33,102 @@ const REVERSE_SUBSTRING_TEST_MIN_LEN = 3;
 const SUBSEQUENCE_TEST_MIN_LEN = 8;
 const REVERSE_SUBSEQUENCE_TEST_MIN_LEN = 7;
 
-// *****
-
 // track the (number of) tags that were matched or not matched
+const rawTracker = new Map();
+const normalTracker = new Map();
 const mappedTracker = new Map();
 const unknownTracker = new Map();
 
-function readTagsFile() {
-    const text = fs.readFileSync(TAGS_MAPPING_FILE, "utf8");
-
-    const parsedMap = {};
-
-    const add = (name, tags) => tags.forEach((tag) => {
-        parsedMap[tag] = name;
-    });
-
-    text.split("\n")
-        .map((line) => line.split("#")[0].trim())
-        .filter((line) => line.length > 0)
-        .map((line) => line.split(/:?=+/g).slice(0, 2))
-        .filter((columns) => columns.length >= 2)
-        .map(([name, tags]) => [name.trim(), tags.trim().split(/\s+/g)])
-        .forEach(([name, tags]) => add(name, tags));
-
-    return parsedMap;
+function loadTags() {
+    return parseMultimapFile(TAGS_MAPPING_FILE);
 }
 
-function loadTags() {
-    const parsedMap = readTagsFile();
-    for (const tag in parsedMap)
-        tagsMap[tag] = parsedMap[tag];
+function writeOneReport(filename, trackerMap) {
+    if (trackerMap.size === 0) return; // don't write reports for empty tracker
+    const file = `output/stats/${filename}`;
+    const dataText = mapToUniqString(trackerMap);
+    makeFolderFor(file);
+    fs.writeFileSync(file, dataText);
 }
 
 function writeReport() {
-    const folder = config.OUTPUT_FOLDER;
-    const mappedFile = `${folder}/${MAPPED_TAGS_DUMP_FILE}`;
-    const unknownFile = `${folder}/${UNKNOWN_TAGS_DUMP_FILE}`;
-    const mappedData = mapToUniqString(mappedTracker);
-    const unknownData = mapToUniqString(unknownTracker);
-    files.makeFolderFor(mappedFile);
-    files.makeFolderFor(unknownFile);
-    fs.writeFileSync(mappedFile, mappedData);
-    fs.writeFileSync(unknownFile, unknownData);
+    writeOneReport("raw_tags", rawTracker);
+    writeOneReport("normal_tags", normalTracker);
+    writeOneReport("mapped_tags", mappedTracker);
+    writeOneReport("unknown_tags", unknownTracker);
 }
 
-function mapTag(sotag) {
+function normalizeTag(rawTag) {
+    rawTracker.set(rawTag, (rawTracker.get(rawTag) || 0) + 1);
+
     // is the tag listed?
-    let tag = sotag;
+    let tag = rawTag.trim();
     if (tagsMap.hasOwnProperty(tag))
-        return tagsMap[tag];
-    if (ignoreTags.has(tag))
-        return null;
+        return tag;
 
     // try with lowercase only.
     tag = tag.toLowerCase();
     if (tagsMap.hasOwnProperty(tag))
-        return tagsMap[tag];
-    if (ignoreTags.has(tag))
-        return null;
+        return tag;
 
     // try replacing spaces and underscores with dashes.
-    tag = tag.replace(/ |_/g, "-");
+    tag = tag.replace(/\s+|_/g, "-");
     if (tagsMap.hasOwnProperty(tag))
-        return tagsMap[tag];
-    if (ignoreTags.has(tag))
-        return null;
+        return tag;
 
     // remove versions at the end of the tag (e.g. css3, c++11, java-11).
     tag = tag.replace(/-?\d+$/, "");
     if (tagsMap.hasOwnProperty(tag))
-        return tagsMap[tag];
-    if (ignoreTags.has(tag))
-        return null;
+        return tag;
 
     // remove extensions (.js) and repeat.
     tag = tag.replace(/\.[a-z0-9]+$/, "").replace(/-?\d+$/, "");
     if (tagsMap.hasOwnProperty(tag))
-        return tagsMap[tag];
-    if (ignoreTags.has(tag))
-        return null;
+        return tag;
 
     // remove '.js$' brain damage.
     tag = tag.replace(/\.?js$/, "").replace(/-?\d+$/, "");
     if (tagsMap.hasOwnProperty(tag))
-        return tagsMap[tag];
-    if (ignoreTags.has(tag))
-        return null;
+        return tag;
 
     // we are getting desperate, remove separators altogether.
     tag = tag.replace(/-|\//g, "");
+    if (tagsMap.hasOwnProperty(tag))
+        return tag;
+
+    // take it as is then
+    return tag;
+}
+
+function trackNormalizeTag(rawTag) {
+    const tag = normalizeTag(rawTag);
+    if (tag)
+        normalTracker.set(tag, (normalTracker.get(tag) || 0) + 1);
+    return tag;
+}
+
+function normalizeTags(rawTag) {
+    if (!rawTag) return null;
+
+    if (typeof rawTag === "object") {
+        // array of tags
+        return rawTag.map(trackNormalizeTag)
+            .filter((el) => el)
+            .sort()
+            .filter((el, i, a) => el && i === a.indexOf(el));
+    }
+
+    if (typeof rawTag !== "string") {
+        console.error("Invalid StackOverflow tag:", rawTag);
+        throw "Invalid Argument";
+    }
+
+    return trackNormalizeTag(rawTag);
+}
+
+function mapTag(rawTag) {
+    // the tag should already be normalized
+    const tag = normalizeTag(rawTag);
     if (tagsMap.hasOwnProperty(tag))
         return tagsMap[tag];
     if (ignoreTags.has(tag))
@@ -163,18 +158,17 @@ function mapTag(sotag) {
     // give up
 
     if (!unknownTracker.has(tag))
-        console.warn(`Could not map StackOverflow Tag:  ${tag}`);
+        console.warn(`Could not map StackOverflow tag:  ${tag}`);
 
     unknownTracker.set(tag, (unknownTracker.get(tag) || 0) + 1);
 
     return null;
 }
 
-function wrapMapTag(sotag) {
+function trackMapTag(sotag) {
     const tag = mapTag(sotag);
-    if (tag) {
+    if (tag)
         mappedTracker.set(tag, (mappedTracker.get(tag) || 0) + 1);
-    }
     return tag;
 }
 
@@ -190,11 +184,10 @@ function mapTags(sotag) {
 
     if (typeof sotag === "object") {
         // array of tags
-        const nitags = sotag.map(wrapMapTag)
+        return sotag.map(trackMapTag)
             .filter((el) => el)
             .sort()
             .filter((el, i, a) => el && i === a.indexOf(el));
-        return nitags;
     }
 
     if (typeof sotag !== "string") {
@@ -202,7 +195,7 @@ function mapTags(sotag) {
         throw "Invalid Argument";
     }
 
-    return wrapMapTag(sotag);
+    return trackMapTag(sotag);
 }
 
-module.exports = { readTagsFile, loadTags, writeReport, mapTags };
+module.exports = { writeReport, mapTags, normalizeTags };

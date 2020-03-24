@@ -1,31 +1,57 @@
 /**
  * A scraper for https://stackoverflow.com/jobs
- * with hooks for hydrating (adjusting) the raw mined data, writing files,
- * and limiting concurrency
- *
- * https://meta.stackoverflow.com/questions/348954/can-i-scrape-stack-overflow-job-postings
+ * Output is written to output/
  */
-"use strict";
-
 const axios = require("axios").default;
 const plimit = require("p-limit").default;
 const cheerio = require("cheerio");
 
-const config = require("./config");
-
-const { writeJSONandYAML } = require("./files");
+const {
+    SCRAP_TIMEOUT,
+    TIMEOUT_RETRIES,
+    SCRAP_QUERY_PARAMS,
+    SCRAP_QUERY_PARAMS_DETAILS,
+    SCRAP_CONCURRENT_LISTING,
+    SCRAP_CONCURRENT_DETAILS,
+    SCRAP_PAGES,
+} = require("./config");
+const { writeRawBlob, writePageBlobs } = require("./blobs");
+const { parseStackOverflow } = require("./parser");
 
 const REQUIRED_QUERY_PARAMS = {};
 const REQUIRED_QUERY_PARAMS_DETAILS = {};
 
-const ID_PREFIX = "so_";
-
-// *****
-
 const stackoverflow = axios.create({
     baseURL: "https://stackoverflow.com",
-    timeout: config.SCRAP_TIMEOUT,
+    timeout: SCRAP_TIMEOUT,
     method: "GET",
+});
+
+// https://github.com/axios/axios/issues/934
+stackoverflow.interceptors.request.use(null, (err) => {
+    const code = err.code;
+    if (!err.config || (code !== "ECONNABORTED" && code !== "ETIMEDOUT")) {
+        return Promise.reject(err);
+    }
+    err.config.retriesCount = (err.config.retriesCount || 0) + 1;
+    fetchRetry(err);
+    if (err.config.retriesCount <= TIMEOUT_RETRIES) {
+        return axios.request(err.config);
+    } else {
+        return Promise.reject(err);
+    }
+});
+
+// https://meta.stackoverflow.com/questions/348954
+stackoverflow.interceptors.response.use(null, (err) => {
+    if (!err.config || !err.response || err.response.status !== 429) {
+        return Promise.reject(err);
+    }
+    console.error("Received 429 Too Many Requests. Bailing...");
+    const retry = err.response.headers["retry-after"];
+    if (retry > 0)
+        console.info(`Note: asked to retry after ${retry} seconds`);
+    return process.exit(2); /* eslint-disable */
 });
 
 function keyBy(array, key) {
@@ -41,102 +67,6 @@ function sortById({ id: id1 }, { id: id2 }) {
     return id1 < id2 ? -1 : 1;
 }
 
-// *****
-
-/**
- * @typedef {Object} Offer
- * @typedef {Object} RawOffer
- */
-
-/**
- * @callback Hydrator
- * @param {RawOffer}         rawOffer - the offer scrapped from StackOverflow
- * @param {Object}           cheerio
- * @property {CheerioStatic} cheerio.job$ - cheerio for the details page
- * @property {Cheerio}       cheerio.row$ - row cheerio for the listings page
- * @returns {Offer|RawOffer}
- */
-
-/**
- * @callback Writer
- * @param {Offer|RawOffer} offer - the offer to store (e.g. write to a file)
- */
-
-/**
- * Mine raw data from the cheerio representations
- *
- * @param {Object}        arg
- * @param {String}        arg.id   - job's stackoverflow id
- * @param {CheerioStatic} arg.job$ - cheerio for job's details page
- * @param {Cheerio}       arg.row$ - cheerio for job's row in listing page
- * @returns RawOffer
- */
-function scrapData({ id, job$, row$ }) {
-    // in the listing page...
-    const sub = row$.find("h2 > a[title]").eq(0).parent().next().children();
-    const footer = row$.find("div.fs-caption > div:contains(' ago')");
-
-    // in the details page...
-    const titleLink = job$("#mainbar h1 > a[title]");
-    const aboutHeader = job$("#mainbar h2:icontains('About this job')");
-    const techHeader = job$("#mainbar h2:icontains('Technologies')");
-    const descrHeader = job$("#mainbar h2:icontains('Job description')");
-    const logoLink = job$("#mainbar header.job-details--header a[href]:has(img)");
-
-    const title = titleLink.text().trim();
-    const companyName = sub.eq(0).text().trim();
-    const location = sub.eq(1).text().trim();
-    const companyUri = logoLink.attr("href");
-    const companyNick = () => {
-        const match = /^\/jobs\/companies\/([^/]+)/.exec(companyUri);
-        if (!match) return null;
-        return match[1];
-    };
-
-    const aboutFn = (label) => aboutHeader.next()
-        .find(`div.mb8 span:contains('${label}')`).next()
-        .text().trim();
-
-    const tags = techHeader.next().find("a.post-tag")
-        .map((_index, element) => job$(element).text().trim()).get()
-        .sort()
-        .filter((el, i, a) => i === a.indexOf(el));
-
-    const description = descrHeader.next()
-        .text().trim()
-        .replace(/\n\s*\n\s*\n/g, "\n\n");
-
-    const publishDate = footer.text().trim();
-
-    // The order matters here. YAML and JSON will print them in this order
-    const rawOffer = {
-        id: ID_PREFIX + id,
-        title: title,
-        companyName: companyName,
-        companyUri: companyUri,
-        companyNick: companyNick(),
-        location: location,
-        jobType: aboutFn("Job type"),
-        role: aboutFn("Role"),
-        experience: aboutFn("Experience level"),
-        industry: aboutFn("Industry"),
-        companySize: aboutFn("Company size"),
-        companyType: aboutFn("Company type"),
-        tags: tags,
-        description: description,
-        publishDate: publishDate,
-    };
-
-    return rawOffer;
-}
-
-/**
- * Get a Cheerio for each job in the listing page
- *
- * @param {CheerioStatic} listing$ - Listing page cheerio
- * @param {Number} pg - Page number
- * @returns {Object[]}
- */
 function getRowsFromListings(listing$, pg) {
     const rows = [];
     for (const entry of listing$("div.-job[data-jobid]").get()) {
@@ -149,37 +79,23 @@ function getRowsFromListings(listing$, pg) {
     return rows;
 }
 
-/**
- * Handle a fetch error
- */
-function fetchError(err) {
+function fetchRetry(err) {
     const time = new Date().toISOString();
+    const retries = err.config.retriesCount;
+    const max = TIMEOUT_RETRIES;
     console.error(`\n\n${time}  GET ${err.config.url}`);
     console.error(err.config.params);
-    console.error(`${err.code}: ${err.message}\n`);
-
-    if (err.response && err.response.status === 429) {
-        console.error("Received 429 Too Many Requests. Bailing...");
-
-        const retry = err.response.headers["retry-after"];
-        if (retry > 0)
-            console.info(`Note: asked to retry after ${retry} seconds`);
-
-        process.exit(2);
-    }
-    return null;
+    console.error(`${err.code}: ${err.message}`);
+    if (retries >= max)
+        console.error(`Retries [${retries}/${max}]: Giving up...`);
+    else
+        console.error(`Retries [${retries}/${max}]: Trying again...`);
 }
 
-/**
- * Fetch job details, https://stackoverflow.com/jobs/$id
- *
- * @param {String} id - Job id
- * @returns ?CheerioStatic
- */
 async function fetchDetails(id) {
     const url = `/jobs/${id}`;
     const params = { ...REQUIRED_QUERY_PARAMS_DETAILS,
-        ...config.SCRAP_QUERY_PARAMS_DETAILS };
+        ...SCRAP_QUERY_PARAMS_DETAILS };
 
     try {
         const jobHTML = await stackoverflow.get(url, { params })
@@ -187,20 +103,14 @@ async function fetchDetails(id) {
 
         return cheerio.load(jobHTML);
     } catch (err) {
-        return fetchError(err);
+        return null;
     }
 }
 
-/**
- * Fetch one listing page, https://stackoverflow.com/jobs?pg=$pg
- *
- * @param {Number} pg - Page number
- * @returns ?CheerioStatic
- */
 async function fetchListing(pg) {
     const url = "/jobs";
     const params = { ...REQUIRED_QUERY_PARAMS,
-        ...config.SCRAP_QUERY_PARAMS, pg };
+        ...SCRAP_QUERY_PARAMS, pg };
 
     try {
         const listingsHTML = await stackoverflow.get(url, { params })
@@ -208,28 +118,19 @@ async function fetchListing(pg) {
 
         return cheerio.load(listingsHTML);
     } catch (err) {
-        return fetchError(err);
+        return null;
     }
 }
 
-/**
- * Fetch the job details from the given id, scrap the data and hydrate it
- *
- * @param {Hydrator} hydrator
- * @returns {null|Offer|RawOffer}
- */
-async function fetchScrapHydrate(hydrator, { id, row$ }) {
+async function fetchScrap({ id, row$ }) {
     try {
         const job$ = await fetchDetails(id);
         if (!job$) return null;
 
-        const rawOffer = scrapData({ id, job$, row$ });
-        if (!rawOffer) return null;
+        const raw = parseStackOverflow({ id, job$, row$ });
+        if (!raw) return null;
 
-        const offer = hydrator(rawOffer, { id, job$, row$ });
-        if (!offer) return null;
-
-        return offer;
+        return raw;
     } catch (err) {
         console.error("Exception occurred mining /jobs/%s:\n", id, err);
         return null;
@@ -242,7 +143,7 @@ function getNumPages() {
     // deal with duplicate jobs or other such stupid nonsense.
 
     const fuckup = "PAGES should be a positive int or an array of ints";
-    const pages = config.SCRAP_PAGES;
+    const pages = SCRAP_PAGES;
 
     if (typeof pages === "object") {
         if (!Array.isArray(pages))
@@ -305,44 +206,18 @@ function makeProgressCallbacks() {
     };
 
     return { endJob, failJob, addListing, endListing, failListing,
-        setNumPages };
+        setNumPages, print };
 }
 
-const DEFAULT_HYDRATOR = (offer) => offer;
-
-const DEFAULT_WRITE_SINGLE = (offer) => {
-    const id = offer.id;
-    const folder = `${config.OUTPUT_FOLDER}/${config.OUTPUT_SUBFOLDER}`;
-    writeJSONandYAML(`${folder}/jobs/${id}`, offer);
-};
-
-const DEFAULT_WRITE_PAGES = (offers, pg) => {
-    const folder = `${config.OUTPUT_FOLDER}/${config.OUTPUT_SUBFOLDER}`;
-    writeJSONandYAML(`${folder}/pages/${pg}/offers`, offers);
-};
-
-/**
- * Scrap StackOverflow
- *
- * Exits the process if 429 is received on any request
- *
- * @param {Object}   args
- * @param {Hydrator} args.hydrator - Hydrate callback
- * @param {Writer}   args.writeSingle - Callback to write individual offers
- * @param {Writer}   args.writePages - Callback to write offers from one page
- */
-async function scrapStackOverflow({
-    hydrator = DEFAULT_HYDRATOR,
-    writeSingle = DEFAULT_WRITE_SINGLE,
-    writePages = DEFAULT_WRITE_PAGES,
-} = {}) {
+async function scrapStackOverflow() {
     const pages = getNumPages();
     const { endJob, failJob, addListing, endListing, failListing,
-        setNumPages } = makeProgressCallbacks();
+        setNumPages, print } = makeProgressCallbacks();
     setNumPages(pages.length);
 
-    const llimit = plimit(config.SCRAP_CONCURRENT_LISTING_REQUESTS);
-    const dlimit = plimit(config.SCRAP_CONCURRENT_DETAILS_REQUESTS);
+    const llimit = plimit(SCRAP_CONCURRENT_LISTING);
+    const dlimit = plimit(SCRAP_CONCURRENT_DETAILS);
+    print(false);
 
     // fetch scrap all pages
     const results = await Promise.all(pages.map((pg) => llimit(async () => {
@@ -358,24 +233,22 @@ async function scrapStackOverflow({
         // fetch all entries; scrap job details into offers
         const unfiltered = await Promise.all(entries.map(({ id, row$ }) => (
             dlimit(async () => {
-                const offer = await fetchScrapHydrate(hydrator, { id, row$ });
-                if (!offer) return failJob();
+                const raw = await fetchScrap({ id, row$ });
+                if (!raw) return failJob();
 
+                writeRawBlob(raw);
                 endJob();
-                writeSingle(offer);
-                return offer;
+                return raw;
             })
         )));
         endListing();
 
-        // remove nulls | sort
-        const processed = unfiltered
-            .filter((elem) => elem)
-            .sort(sortById);
+        // remove nulls
+        const processed = unfiltered.filter((elem) => elem);
 
-        const offers = keyBy(processed, "id");
-        writePages(offers, pg);
-        return offers;
+        const keyed = keyBy(processed, "id");
+        writePageBlobs(keyed, pg);
+        return keyed;
     })));
 
     // remove nulls | sort | uniq

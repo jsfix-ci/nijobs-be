@@ -1,0 +1,17 @@
+# StackOverflow    devroles -> nijobs    FieldType
+#   Parsed by roles.js
+# Format: "$nijobs-field-type = $so-devrole..."
+
+BACKEND_DEVELOPER        =  backend
+DATABASE_ADMIN           =  database
+DESIGNER                 =  design designer
+DESKTOP_DEVELOPER        =  desktop windows linux macos
+DEVOPS                   =  devops docker kubernetes terraform aws
+EMBEDDED_DEVELOPER       =  embedded
+FRONTEND_DEVELOPER       =  frontend
+FULL_STACK_DEVELOPER     =  full_stack
+GAME_DEVELOPER           =  game gaming
+MOBILE_DEVELOPER         =  mobile ios android
+QUALITY_ASSURANCE        =  qa qualityassurance testing
+SYSADMIN                 =  sysadmin system_admin
+OTHER                    =

@@ -1,29 +1,19 @@
-// Use a dotenv-flow like organization
-// There is a env.js above this file. Read the default config from there;
-// if the env.local.js file exists too, read it as well.
-function env() {
-    const mainConfig = require("../env");
-    try {
-        const localConfig = require("../env.local");
-        return {
-            ...mainConfig,
-            ...localConfig,
-        };
-    } catch (err) {
-        return { ...mainConfig };
-    }
-}
+// Read environment config
+require("dotenv-flow").config();
+const qs = require("querystring");
+
+const env = process.env;
 
 const config = {
-    SCRAP_QUERY_PARAMS: {},
-    SCRAP_QUERY_PARAMS_DETAILS: {},
-    SCRAP_PAGES: 40,
-    SCRAP_TIMEOUT: 120000,
-    SCRAP_CONCURRENT_LISTING_REQUESTS: 20,
-    SCRAP_CONCURRENT_DETAILS_REQUESTS: 40,
-    OUTPUT_FOLDER: "output",
-    OUTPUT_SUBFOLDER: "default",
-    ...env(),
+    SCRAP_QUERY_PARAMS: qs.parse(env.SCRAP_QUERY_PARAMS) || "",
+    SCRAP_QUERY_PARAMS_DETAILS: qs.parse(env.SCRAP_QUERY_PARAMS_DETAILS) || "",
+    SCRAP_PAGES: +env.SCRAP_PAGES || 40,
+    SCRAP_TIMEOUT: +env.SCRAP_TIMEOUT || 20000,
+    SCRAP_TIMEOUT_RETRIES: +env.SCRAP_TIMEOUT_RETRIES || 3,
+    SCRAP_CONCURRENT_LISTING: +env.SCRAP_CONCURRENT_LISTING || 20,
+    SCRAP_CONCURRENT_DETAILS: +env.SCRAP_CONCURRENT_DETAILS || 40,
+    WRITE_YAML_ALSO: env.WRITE_YAML_ALSO || false,
+    AUTO_CMS: (env.AUTO_CMS === undefined) ? true : env.AUTO_CMS,
 };
 
 module.exports = config;

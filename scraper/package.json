@@ -4,13 +4,7 @@
   "description": "Scraper for StackOverflow jobs",
   "main": "src/index.js",
   "scripts": {
-    "scrap": "node src/index.js scrap-nijobs",
-    "scrap-raw": "node src/index.js scrap-raw",
-    "stats": "node src/index.js stats-nijobs",
-    "stats-raw": "node src/index.js stats-raw",
-    "hydrate": "node src/index.js hydrate",
-    "join": "node src/index.js join-nijobs",
-    "join-raw": "node src/index.js join-raw"
+    "start": "make all"
   },
   "repository": {
     "type": "git",
@@ -22,9 +16,11 @@
   "dependencies": {
     "axios": "^0.19.2",
     "cheerio": "^1.0.0-rc.3",
+    "dotenv-flow": "^3.1.0",
     "glob": "^7.1.6",
     "mkdirp": "^1.0.3",
     "p-limit": "^2.2.2",
+    "shelljs": "^0.8.3",
     "yaml": "^1.8.2"
   }
 }
