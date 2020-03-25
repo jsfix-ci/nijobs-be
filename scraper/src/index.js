@@ -1,6 +1,13 @@
 // Run any command
-const shell = require("shelljs");
+
 const fs = require("fs");
+
+if (!fs.existsSync("hydrate/") || !fs.existsSync("scripts/stats.sh")) {
+    console.error("Please execute this script in scraper/");
+    process.exit(2);
+}
+
+const shell = require("shelljs");
 
 const scrapStackOverflow = require("./scraper");
 const blobs = require("./blobs");
@@ -98,11 +105,5 @@ function script(action, which) {
 function run() {
     const action = process.argv[2] || "all";
     const which = process.argv[3] || "all";
-
-    if (!fs.existsSync("hydrate/") || !fs.existsSync("scripts/stats.sh")) {
-        console.error("Please execute this script in scraper/");
-        process.exit(2);
-    }
-
     script(action, which);
 }

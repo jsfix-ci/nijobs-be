@@ -2,13 +2,13 @@
  * A scraper for https://stackoverflow.com/jobs
  * Output is written to output/
  */
-const axios = require("axios").default;
 const plimit = require("p-limit").default;
 const cheerio = require("cheerio");
+const got = require("got").default;
 
 const {
     SCRAP_TIMEOUT,
-    TIMEOUT_RETRIES,
+    SCRAP_TIMEOUT_RETRIES,
     SCRAP_QUERY_PARAMS,
     SCRAP_QUERY_PARAMS_DETAILS,
     SCRAP_CONCURRENT_LISTING,
@@ -21,51 +21,11 @@ const { parseStackOverflow } = require("./parser");
 const REQUIRED_QUERY_PARAMS = {};
 const REQUIRED_QUERY_PARAMS_DETAILS = {};
 
-const stackoverflow = axios.create({
-    baseURL: "https://stackoverflow.com",
+const stackoverflow = got.extend({
+    prefixUrl: "https://stackoverflow.com",
+    retry: SCRAP_TIMEOUT_RETRIES,
     timeout: SCRAP_TIMEOUT,
-    method: "GET",
 });
-
-// https://github.com/axios/axios/issues/934
-stackoverflow.interceptors.request.use(null, (err) => {
-    printRetry(err);
-    if (!err.config) {
-        return Promise.reject(err);
-    }
-    err.config.retriesCount = (err.config.retriesCount || 0) + 1;
-    printRetry(err);
-    if (err.config.retriesCount <= TIMEOUT_RETRIES) {
-        return axios.request(err.config);
-    } else {
-        return Promise.reject(err);
-    }
-});
-
-// https://meta.stackoverflow.com/questions/348954
-stackoverflow.interceptors.response.use(null, (err) => {
-    if (!err.config || !err.response || err.response.status !== 429) {
-        return Promise.reject(err);
-    }
-    console.error("Received 429 Too Many Requests. Bailing...");
-    const retry = err.response.headers["retry-after"];
-    if (retry > 0)
-        console.info(`Note: asked to retry after ${retry} seconds`);
-    return process.exit(2); /* eslint-disable */
-});
-
-function printRetry(err) {
-    const time = new Date().toISOString();
-    const retries = err.config.retriesCount;
-    const max = TIMEOUT_RETRIES;
-    console.error(`\n\n${time}  GET ${err.config.url}`);
-    console.error(err.config.params);
-    console.error(`${err.code}: ${err.message}`);
-    if (retries >= max)
-        console.error(`Retries [${retries}/${max}]: Giving up...`);
-    else
-        console.error(`Retries [${retries}/${max}]: Trying again...`);
-}
 
 function keyBy(array, key) {
     const obj = {};
@@ -94,30 +54,30 @@ function getRowsFromListings(listing$, pg) {
 
 async function fetchDetails(id) {
     const url = `/jobs/${id}`;
-    const params = { ...REQUIRED_QUERY_PARAMS_DETAILS,
+    const searchParams = { ...REQUIRED_QUERY_PARAMS_DETAILS,
         ...SCRAP_QUERY_PARAMS_DETAILS };
 
     try {
-        const jobHTML = await stackoverflow.get(url, { params })
-            .then((res) => res.data);
+        const jobHTML = await stackoverflow(url, { searchParams }).text();
 
         return cheerio.load(jobHTML);
     } catch (err) {
+        console.error(err.message ? err.message : err);
         return null;
     }
 }
 
 async function fetchListing(pg) {
     const url = "/jobs";
-    const params = { ...REQUIRED_QUERY_PARAMS,
+    const searchParams = { ...REQUIRED_QUERY_PARAMS,
         ...SCRAP_QUERY_PARAMS, pg };
 
     try {
-        const listingsHTML = await stackoverflow.get(url, { params })
-            .then((res) => res.data);
+        const listingsHTML = await stackoverflow(url, { searchParams }).text();
 
         return cheerio.load(listingsHTML);
     } catch (err) {
+        console.error(err.message ? err.message : err);
         return null;
     }
 }
@@ -152,7 +112,7 @@ function getNumPages() {
             if (/^\d+-\d+$/.test(page)) {
                 const [min, max] = page.split("-");
                 const arr  = [];
-                for (let i = min; i <= max; ++i) arr.push(i);
+                for (let i = +min; i <= +max; ++i) arr.push(i);
                 return arr;
             } else {
                 return +page;
@@ -219,9 +179,9 @@ async function scrapStackOverflow() {
 
     const results = await Promise.all(pages.map((pg) => llimit(async () => {
         const listing$ = await fetchListing(pg);
-        if (!listing$) return endListing();
+        if (!listing$) return failListing();
 
-        const entries = getRowsFromListings(listing$);
+        const entries = getRowsFromListings(listing$, pg);
         addListing(entries.length);
         if (entries.length === 0) return failListing();
 
