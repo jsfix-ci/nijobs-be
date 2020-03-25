@@ -25,33 +25,30 @@ function parseStackOverflow({ id, job$, row$ }) {
     const descrHeader = job$("#mainbar h2:icontains('Job description')");
     const logoLink = job$("#mainbar header.job-details--header a[href]:has(img)");
 
-    const title = titleLink.text().trim().replace(/\s+/g, " ");
-    const companyName = sub.eq(0).text().trim().replace(/\s+/g, "-");
-    const location = sub.eq(1).text().trim().replace(/\s+/g, " ");
+    const title = titleLink.text().trim();
+    const location = sub.eq(1).text().trim();
+    const companyName = sub.eq(0).text().trim();
     const companyUri = logoLink.attr("href");
     const company = (() => {
+        if (!companyUri) return companyName;
         let match = /^\/jobs\/companies\/([^/]+)/.exec(companyUri);
         if (match) return match[1];
         match = /([^/]+)$/.exec(companyUri);
         if (match) return match[1];
-        return null;
+        return companyName;
     })();
 
-    const aboutFn = (label) => aboutHeader.next()
+    const aboutFn = (label) => oneline(aboutHeader.next()
         .find(`div.mb8 span:contains('${label}')`).next()
-        .text().trim().replace(/\s+/g, " ");
+        .text().trim().replace(/\s+/g, " "));
 
     const tags = techHeader.next().find("a.post-tag")
-        .map((_index, element) =>
-            job$(element).text().trim().replace(/\s+/g, " "))
-        .get().sort()
-        .filter((el, i, a) => el && i === a.indexOf(el));
+        .map((_index, element) => oneline(job$(element).text()))
+        .get().sort().filter((el, i, a) => el && i === a.indexOf(el));
 
-    const description = descrHeader.next()
-        .text().trim()
-        .replace(/\n\s+\n/g, "\n\n");
+    const description = descrHeader.next().text();
 
-    const ago = footer.text().trim().replace(/\s+/g, " ");
+    const ago = footer.text();
 
     // The order matters here. YAML and JSON will print them in this order
     const raw = {
@@ -61,8 +58,8 @@ function parseStackOverflow({ id, job$, row$ }) {
         companyUri: companyUri,
         company: identifier(company),
         location: oneline(location),
-        jobType: english(oneline(aboutFn("Job type"))),
-        role: english(oneline(aboutFn("Role"))),
+        jobType: english(aboutFn("Job type")),
+        role: english(aboutFn("Role")),
         experience: aboutFn("Experience level"),
         industry: aboutFn("Industry"),
         companySize: aboutFn("Company size"),
@@ -82,11 +79,13 @@ function addCompany(raw) {
 
     companies[raw.company] = {
         id: raw.company,
-        name: raw.company,
+        name: raw.companyName,
         uri: raw.companyUri,
         industry: raw.industry || "Software Development",
         size: raw.companySize || "Some people",
         type: raw.companyType || "Normal",
+        address: raw.location,
+        website: `https://${raw.company}.com`,
     };
 }
 

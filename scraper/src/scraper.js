@@ -29,12 +29,12 @@ const stackoverflow = axios.create({
 
 // https://github.com/axios/axios/issues/934
 stackoverflow.interceptors.request.use(null, (err) => {
-    const code = err.code;
-    if (!err.config || (code !== "ECONNABORTED" && code !== "ETIMEDOUT")) {
+    printRetry(err);
+    if (!err.config) {
         return Promise.reject(err);
     }
     err.config.retriesCount = (err.config.retriesCount || 0) + 1;
-    fetchRetry(err);
+    printRetry(err);
     if (err.config.retriesCount <= TIMEOUT_RETRIES) {
         return axios.request(err.config);
     } else {
@@ -53,6 +53,19 @@ stackoverflow.interceptors.response.use(null, (err) => {
         console.info(`Note: asked to retry after ${retry} seconds`);
     return process.exit(2); /* eslint-disable */
 });
+
+function printRetry(err) {
+    const time = new Date().toISOString();
+    const retries = err.config.retriesCount;
+    const max = TIMEOUT_RETRIES;
+    console.error(`\n\n${time}  GET ${err.config.url}`);
+    console.error(err.config.params);
+    console.error(`${err.code}: ${err.message}`);
+    if (retries >= max)
+        console.error(`Retries [${retries}/${max}]: Giving up...`);
+    else
+        console.error(`Retries [${retries}/${max}]: Trying again...`);
+}
 
 function keyBy(array, key) {
     const obj = {};
@@ -77,19 +90,6 @@ function getRowsFromListings(listing$, pg) {
     if (rows.length === 0)
         console.warn(`Found no jobs in page ${pg}`);
     return rows;
-}
-
-function fetchRetry(err) {
-    const time = new Date().toISOString();
-    const retries = err.config.retriesCount;
-    const max = TIMEOUT_RETRIES;
-    console.error(`\n\n${time}  GET ${err.config.url}`);
-    console.error(err.config.params);
-    console.error(`${err.code}: ${err.message}`);
-    if (retries >= max)
-        console.error(`Retries [${retries}/${max}]: Giving up...`);
-    else
-        console.error(`Retries [${retries}/${max}]: Trying again...`);
 }
 
 async function fetchDetails(id) {
@@ -141,27 +141,25 @@ function getNumPages() {
     // if we send trash page numbers to stackoverflow it won't complain.
     // usually it just answers back with page #1. We don't want to
     // deal with duplicate jobs or other such stupid nonsense.
-
-    const fuckup = "PAGES should be a positive int or an array of ints";
-    const pages = SCRAP_PAGES;
-
-    if (typeof pages === "object") {
-        if (!Array.isArray(pages))
-            throw fuckup;
-        for (const page of pages)
-            if (!Number.isInteger(page))
-                throw fuckup;
-        return pages;
+    const pages = SCRAP_PAGES.split(/,|;/g);
+    for (const page in pages) {
+        if (/(?:\d+(?:-\d+)?)+/g.test(page)) continue;
+        console.error("Invalid SCRAP_PAGES value");
+        process.exit(2);
     }
-    if (Number.isInteger(pages) && pages > 0) {
-        const arr  = [];
-        for (let i = 1; i <= pages; ++i) arr.push(i);
-        return arr;
-    }
-    throw fuckup;
+    return pages
+        .map((page) => {
+            if (/^\d+-\d+$/.test(page)) {
+                const [min, max] = page.split("-");
+                const arr  = [];
+                for (let i = min; i <= max; ++i) arr.push(i);
+                return arr;
+            } else {
+                return +page;
+            }
+        }).reduce((acc, value) => acc.concat(value), []);
 }
 
-// simplistic progress routines
 function makeProgressCallbacks() {
     let actual = 0, total = 0;
     let actualPages = 0, totalPages = 0;
@@ -219,18 +217,15 @@ async function scrapStackOverflow() {
     const dlimit = plimit(SCRAP_CONCURRENT_DETAILS);
     print(false);
 
-    // fetch scrap all pages
     const results = await Promise.all(pages.map((pg) => llimit(async () => {
         const listing$ = await fetchListing(pg);
         if (!listing$) return endListing();
 
-        // scrap all jobs in the listing
         const entries = getRowsFromListings(listing$);
         addListing(entries.length);
         if (entries.length === 0) return failListing();
 
 
-        // fetch all entries; scrap job details into offers
         const unfiltered = await Promise.all(entries.map(({ id, row$ }) => (
             dlimit(async () => {
                 const raw = await fetchScrap({ id, row$ });

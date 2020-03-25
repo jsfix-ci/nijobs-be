@@ -70,8 +70,7 @@ function parseMultimapFile(file) {
     });
 
     text.split("\n")
-        .map((line) => line.split("#")[0].trim())
-        .filter((line) => line.length > 0)
+        .filter((line) => !/^\s*#/.test(line) && line.length > 0)
         .map((line) => line.split(/:?=+/g).slice(0, 2))
         .filter((columns) => columns.length >= 2)
         .map(([name, values]) => [name.trim(), values.trim().split(/\s+/g)])
@@ -90,8 +89,7 @@ function parseMapFile(file) {
     };
 
     text.split("\n")
-        .map((line) => line.split("#")[0].trim())
-        .filter((line) => line.length > 0)
+        .filter((line) => !/^\s*#/.test(line) && line.length > 0)
         .map((line) => line.split(/:?=+/g).slice(0, 2))
         .filter((columns) => columns.length >= 2)
         .map(([name, values]) => [name.trim(),
@@ -116,9 +114,8 @@ function fileToJSON(inputFile, outputFile) {
 }
 
 function mergeFiles(pattern, outputFile, key = "id") {
-    const files = glob.sync(pattern);
     const merged = {};
-    files.forEach((file) => {
+    glob.sync(pattern).forEach((file) => {
         const blob = readBlob(file);
         merged[blob[key]] = blob;
     });
@@ -129,12 +126,18 @@ function mergeFiles(pattern, outputFile, key = "id") {
 function mapToUniqString(map) {
     return Array.from(map)
         .sort(([v1, c1], [v2, c2]) => {
-            if (c1 !== c2) return c1 - c2;
+            if (c1 !== c2) return c2 - c1;
             return v1 < v2 ? -1 : 1;
         })
         .map(([value, count]) => [value, `${count}`.padStart(7)])
         .map(([value, count]) => `${count} ${value}`)
         .join("\n");
+}
+
+function writeUniqString(file, map) {
+    const data = mapToUniqString(map);
+    makeFolderFor(file);
+    fs.writeFileSync(file, data);
 }
 
 module.exports = {
@@ -145,6 +148,7 @@ module.exports = {
     readBlob,
     writeJSONandYAML,
     mapToUniqString,
+    writeUniqString,
     parseMultimapFile,
     parseMapFile,
     makeFolderFor,

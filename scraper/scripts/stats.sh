@@ -8,7 +8,10 @@ if ! command -v jq >/dev/null; then
     exit 2
 fi
 
-val() { awk "BEGIN{print $*}"; }
+val() { awk "BEGIN {print $*}"; }
+perc() { awk "BEGIN {print $**100\"%\"}"; }
+add_up() { awk '{s+=$1} END {print s+0}' "$@"; }
+count_yaml() { find "$1" -name '*.yaml' | wc -l; }
 
 function stats_scrap() {
 	local SCRAP="output/scrap"
@@ -16,52 +19,70 @@ function stats_scrap() {
 	local ALL="output/scrap/all_jobs.json"
 	local COMP="output/scrap/all_companies.json"
 
-	if ! test -d "$SCRAP"; then
-		echo "$SCRAP is missing; you need to scrap first"
-		echo "  $ make scrap"
-		exit 1
-	fi
-	if ! test -f "$ALL"; then
-		echo "$ALL is missing; you need to merge first"
-		echo "	$ make merge"
-		exit 1
+	test -d "$SCRAP" || return 0
+	if ! test -f "$ALL" || ! test -f "$COMP"; then
+		echo "$ALL or $COMP is missing; you probably forgot to merge"
+		echo "	$ make merge-scrap"
+		return 0
 	fi
 
 	mkdir -p "$STATS"
 
-	jq '.[].id' "$ALL" |
-		sed -e 's/"//g' | sort >"$STATS/ids"
+	# sorted list of job ids
+	jq -r '.[].id' "$ALL" |
+		sort -n >"$STATS/ids" &
 
-	jq '.[].company' "$ALL" |
-		sort | uniq -c | sort -nr >"$STATS/company_count"
+	# sorted list of company ids
+	jq -r '.[].id' "$COMP" |
+		sort >"$STATS/companies" &
 
-    jq '.[].tags[]' "$ALL" |
-		sort | uniq -c | sort -nr >"$STATS/tag_count"
+	# counted list of companies
+	jq -r '.[].company' "$ALL" |
+		sort | uniq -c | sort -nr >"$STATS/company_count" &
 
-	jq '.[]|([.id, .title])|join("  ")' "$ALL" |
-		sed -r -e 's/^"//' -e 's/"$//' | sort > "$STATS/titles"
+	# counted list of tags
+    jq -r '.[].tags[]' "$ALL" |
+		sort | uniq -c | sort -nr >"$STATS/tag_count" &
+
+	# counted list of roles
+	jq -r '.[].role' "$ALL" | sed -e 's/^\s*$/[[null]]/' |
+		sort | uniq -c | sort -nr >"$STATS/role_count" &
+
+	# job titles
+	jq -r '.[]|([.id, .title])|join("  ")' "$ALL" |
+		sort -nr >"$STATS/titles" &
+
+	# description lengths, sorted
+	jq -r '.[].description|length' "$ALL" |
+		sort -nr >"$STATS/description_lengths" &
+
+	wait
 
 	printf '' > "$STATS/overall"
-	local O C T
+	local O C T R D N
 
-	O=$(wc -l "$STATS/ids" | cut -f1 -d' ')
-	printf 'Number of jobs: %d\n' "$O" >>"$STATS/overall"
+	O=$(wc -l <"$STATS/ids")
+	C=$(count_yaml "$SCRAP/companies")
+	TN=$(wc -l <"$STATS/tag_count")
 
-	C=$(ls -1 "$SCRAP/companies" | wc -l | cut -f1 -d' ')
-	printf 'Number of companies: %d\n' "$C" >>"$STATS/overall"
-
-	if ((O > 0)); then
-		T=$(awk '{s+=$1} END {print s}' "$STATS/tag_count")
-		printf 'Average tags/job: %f\n' $(val "$T/$O") >>"$STATS/overall"
-	fi
+	printf '%d\t\tjobs\n' "$O" >>"$STATS/overall"
+	printf '%d\t\tcompanies\n' "$C" >>"$STATS/overall"
+	printf '%d\t\ttags\n' "$TN" >>"$STATS/overall"
 
 	if ((C > 0)); then
-		printf 'Average jobs/company: %f\n' $(val "$O/$C") >>"$STATS/overall"
-	fi
+		printf '%f\tjobs/company\n' "$(val "$O/$C")"
+	fi >>"$STATS/overall"
 
-	echo "scrap:"
-	cat "$STATS/overall"
-	echo "----------"
+	if ((O > 0)); then
+		T=$(add_up "$STATS/tag_count")
+		D=$(add_up "$STATS/description_lengths")
+		N=$(awk '/\bundefined\b/ {print $1}' "$STATS/company_count" || true)
+		R=$(awk '/\[\[null\]\]/ {print $1}' "$STATS/role_count" || true)
+		printf '%f\ttags/job\n' "$(val "$T/$O")"
+		printf '%f\tavg description length\n' "$(val "$D/$O")"
+		printf '%d\t\tnull companies\n' "${N:-0}"
+		printf '%d\t\tnull roles\n' "${R:-0}"
+	fi >>"$STATS/overall"
 }
 
 function stats_nijobs() {
@@ -70,67 +91,81 @@ function stats_nijobs() {
 	local ALL="output/nijobs/all_offers.json"
 	local COMP="output/nijobs/all_companies.json"
 
-	if ! test -d "$NIJOBS"; then
-		echo "$NIJOBS is missing; you need to convert first"
-		echo "  $ make convert"
-		exit 1
-	fi
-	if ! test -f "$ALL"; then
-		echo "$ALL is missing; you need to merge first"
+	test -d "$NIJOBS" || return 0
+	if ! test -f "$ALL" || ! test -f "$COMP"; then
+		echo "$ALL or $COMP is missing; you probably forgot to merge"
 		echo "	$ make merge-nijobs"
-		exit 1
+		return 0
 	fi
 
 	mkdir -p "$STATS"
 
-	jq '.[].id' "$ALL" |
-		sed -r -e 's/^"//' -e 's/"$//' | sort >"$STATS/ids"
+	# sorted list of job ids
+	jq -r '.[].id' "$ALL" |
+		sort -n >"$STATS/ids" &
 
-	jq '.[].company' "$ALL" |
-		sort | uniq -c | sort -nr >"$STATS/company_count"
+	# sorted list of company ids
+	jq -r '.[].id' "$COMP" |
+		sort >"$STATS/companies" &
 
-    jq '.[].technologies[]' "$ALL" |
-		sort | uniq -c | sort -nr >"$STATS/technology_count"
+	# counted list of companies
+	jq -r '.[].company' "$ALL" |
+		sort | uniq -c | sort -nr >"$STATS/company_count" &
 
-	jq '.[].fields[]' "$ALL" |
-		sort | uniq -c | sort -nr >"$STATS/field_count"
+	# counted list of technologies
+    jq -r '.[].technologies[]' "$ALL" |
+		sort | uniq -c | sort -nr >"$STATS/technology_count" &
 
-	jq '.[]|([.id, .title])|join("  ")' "$ALL" |
-		sort | sed -r -e 's/^"//' -e 's/"$//' >"$STATS/titles"
+	# counted list of fields
+	jq -r '.[].fields[]' "$ALL" |
+		sort | uniq -c | sort -nr >"$STATS/field_count" &
+
+	# job titles
+	jq -r '.[]|([.id, .title])|join("  ")' "$ALL" |
+		sort -n >"$STATS/titles" &
+
+	# description lengths, sorted
+	jq -r '.[].description|length' "$ALL" |
+		sort -nr >"$STATS/description_lengths" &
+
+	wait
 
 	printf '' > "$STATS/overall"
-	local O C T F
+	local O C T F D N
 
-	O=$(wc -l "$STATS/ids" | cut -f1 -d' ')
-	printf 'Number of offers: %d\n' "$O" >>"$STATS/overall"
+	O=$(wc -l <"$STATS/ids")
+	C=$(count_yaml "$NIJOBS/companies")
+	TN=$(wc -l <"$STATS/technology_count")
+	FN=$(wc -l <"$STATS/field_count")
 
-	C=$(ls -1 "$NIJOBS/companies" | wc -l | cut -f1 -d' ')
-	printf 'Number of companies: %d\n' "$C" >>"$STATS/overall"
-
-	if ((O > 0)); then
-		T=$(awk '{s+=$1} END {print s}' "$STATS/technology_count")
-		printf 'Average technologies/offer: %f\n' $(val "$T/$O") >>"$STATS/overall"
-
-		F=$(awk '{s+=$1} END {print s}' "$STATS/field_count")
-		printf 'Average fields/offer: %f\n' $(val "$F/$O") >>"$STATS/overall"
-	fi
+	printf '%d\t\toffers\n' "$O" >>"$STATS/overall"
+	printf '%d\t\tcompanies\n' "$C" >>"$STATS/overall"
+	printf '%d\t\ttechnologies\n' "$TN" >>"$STATS/overall"
+	printf '%d\t\tfields\n' "$FN" >>"$STATS/overall"
 
 	if ((C > 0)); then
-		printf 'Average offers/company: %f\n' $(val "$O/$C") >>"$STATS/overall"
-	fi
+		printf '%f\toffers/company\n' "$(val "$O/$C")"
+	fi >>"$STATS/overall"
 
-	echo "nijobs:"
-	cat "$STATS/overall"
-	echo "----------"
+	if ((O > 0)); then
+		T=$(add_up "$STATS/technology_count")
+		F=$(add_up "$STATS/field_count")
+		D=$(add_up "$STATS/description_lengths")
+		N=$(awk '/undefined/ {print $1}' "$STATS/company_count" || true)
+		printf '%f\ttechnologies/offer\n' "$(val "$T/$O")"
+		printf '%f\tfields/offer\n' "$(val "$F/$O")"
+		printf '%f\tavg description length\n' "$(val "$D/$O")"
+		printf '%d\t\tnull companies\n' "${N:-0}"
+	fi >>"$STATS/overall"
 }
 
 case $ACTION in
 	scrap) stats_scrap;;
-	convert) stats_nijobs;;
-	stats|all) stats_scrap && stats_nijobs;;
+	nijobs) stats_nijobs;;
+	all) stats_scrap ; stats_nijobs;;
 	*)
 		echo "Unknown command '$ACTION'" && exit 1
-		echo "Usage: $0 [scrap|convert|all]"
+		echo "Usage: $0 [scrap|nijobs|all]"
 		exit 1
 	;;
 esac

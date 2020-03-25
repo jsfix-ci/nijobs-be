@@ -2,6 +2,7 @@
 const fs = require("fs");
 const mkdirp = require("mkdirp");
 const glob = require("glob");
+const rimraf = require("rimraf");
 
 const { convertJob, convertCompany } = require("./convert");
 const {
@@ -58,7 +59,8 @@ function mergeNijobsBlobs() {
 function convertJobBlobs() {
     const files = glob.sync("output/scrap/jobs/*.yaml");
     if (files.length === 0) {
-        console.warn("WARNING: There are no jobs.");
+        console.warn("WARNING: There are no jobs -- converted nothing");
+        return;
     }
     files.forEach((file) => {
         const raw = readYAML(file);
@@ -71,7 +73,8 @@ function convertJobBlobs() {
 function convertCompanyBlobs() {
     const files = glob.sync("output/scrap/companies/*.yaml");
     if (files.length === 0) {
-        console.warn("WARNING: There are no companies.");
+        console.warn("WARNING: There are no companies -- converted nothing");
+        return;
     }
     files.forEach((file) => {
         const raw = readYAML(file);
@@ -82,24 +85,36 @@ function convertCompanyBlobs() {
 }
 
 function convertBlobs() {
+    if (!fs.existsSync("output/scrap/")) {
+        console.error("scrap/ is empty -- converted nothing");
+        return;
+    }
     convertJobBlobs();
     convertCompanyBlobs();
 }
 
 function deployMerges() {
+    if (!fs.existsSync("output/nijobs/")) {
+        console.error("nijobs/ is empty");
+        return;
+    }
     const offersFile = "output/nijobs/all_offers.json";
     const companiesFile = "output/nijobs/all_companies.json";
     if (!fs.existsSync(offersFile)) {
-        console.error(`Offers file '${offersFile}' doesn't exist`);
+        console.error("Offers file nijobs/all_offers.json doesn't exist");
         return;
     }
     if (!fs.existsSync(companiesFile)) {
-        console.error(`Companies file '${companiesFile}' doesn't exist`);
+        console.error("Companies file nijobs/all_companies.json doesn't exist");
         return;
     }
     mkdirp.sync("data");
     fs.copyFileSync(offersFile, "data/offers.json");
     fs.copyFileSync(companiesFile, "data/companies.json");
+}
+
+function cleanPagesFolder() {
+    rimraf.sync("output/scrap/pages/");
 }
 
 module.exports = {
@@ -111,4 +126,5 @@ module.exports = {
     convertBlobs,
     deployMerges,
     writeCompanies,
+    cleanPagesFolder,
 };

@@ -36,7 +36,7 @@ function fromAgoDate(agoText) {
 }
 
 function fewWeeksAfter(start = Date.now()) {
-    const time = 1000 * agoTable.w * randomInt(2, 5);
+    const time = 1000 * agoTable.w * randomInt(2, 6);
     return new Date(start + time);
 }
 

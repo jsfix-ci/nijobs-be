@@ -7,36 +7,32 @@ const blobs = require("./blobs");
 const tags = require("./tags");
 const roles = require("./roles");
 
-require("./config");
-
 // Run the script
 run();
 
 async function all() {
+    blobs.cleanPagesFolder();
     await scrapStackOverflow();
     blobs.writeCompanies();
-    blobs.mergeScrapBlobs();
-    stats("scrap");
+    merge("scrap");
     blobs.convertBlobs();
-    blobs.mergeNijobsBlobs();
-    stats("convert");
+    merge("nijobs");
     tags.writeReport();
     roles.writeReport();
     blobs.deployMerges();
 }
 
 async function scrap() {
+    blobs.cleanPagesFolder();
     await scrapStackOverflow();
     blobs.writeCompanies();
-    blobs.mergeScrapBlobs();
-    stats("scrap");
+    merge("scrap");
     tags.writeReport();
 }
 
 function convert() {
     blobs.convertBlobs();
-    blobs.mergeNijobsBlobs();
-    stats("convert");
+    merge("nijobs");
     tags.writeReport();
     roles.writeReport();
 }
@@ -46,10 +42,16 @@ function accept() {
 }
 
 function merge(which = "all") {
-    if (which === "scrap" || which === "all")
+    if (which === "scrap" || which === "all") {
         blobs.mergeScrapBlobs();
-    if (which === "convert" || which === "all")
+        stats("scrap");
+        status("scrap");
+    }
+    if (which === "nijobs" || which === "all") {
         blobs.mergeNijobsBlobs();
+        stats("nijobs");
+        status("nijobs");
+    }
 }
 
 function stats(which = "all") {
@@ -64,51 +66,43 @@ function clean(which = "all") {
     shell.exec(`./scripts/clean.sh ${which}`);
 }
 
-async function run() {
-    const arg = process.argv[2];
-    if (!arg) {
-        console.error("Missing command argument");
-        return;
+function script(action, which) {
+    try {
+        switch (action) {
+            case "all":
+                return all();
+            case "scrap":
+                return scrap();
+            case "nijobs":
+                return convert();
+            case "accept":
+                return accept();
+            case "merge":
+                return merge(which);
+            case "stats":
+                return stats(which);
+            case "status":
+                return status(which);
+            case "clean":
+                return clean(which);
+            default:
+                console.error(`Unknown action ${action}`);
+                return 1;
+        }
+    } catch (err) {
+        if (err) console.error(err);
+        return 1;
     }
+}
 
-    const [action, which = "all"] = arg.split(/-|_|\s+/);
+function run() {
+    const action = process.argv[2] || "all";
+    const which = process.argv[3] || "all";
 
     if (!fs.existsSync("hydrate/") || !fs.existsSync("scripts/stats.sh")) {
         console.error("Please execute this script in scraper/");
         process.exit(2);
     }
 
-    try {
-        switch (action) {
-            case "all":
-                await all();
-                break;
-            case "scrap":
-                await scrap();
-                break;
-            case "convert":
-                convert();
-                break;
-            case "accept":
-                accept();
-                break;
-            case "merge":
-                merge(which);
-                break;
-            case "stats":
-                stats(which);
-                break;
-            case "status":
-                status(which);
-                break;
-            case "clean":
-                clean(which);
-                break;
-            default:
-                console.error(`Unknown action ${action}`);
-        }
-    } catch (err) {
-        if (err) console.error(err);
-        process.exit(1);
-    }
+    script(action, which);
 }

@@ -53,7 +53,7 @@ function convertJob(raw) {
         jobStartDate: new Date(),
         description: description,
         contacts: {
-            name: company,
+            name: raw.companyName,
             address: oneline(raw.location),
             website: `https://${company}.com`, // decent guess
             phone: randomPhoneNumber(),
@@ -64,17 +64,24 @@ function convertJob(raw) {
         fields: fields,
         technologies: technologies,
         isHidden: randomBoolean(0.03),
-        location: oneline(raw.location),
+        location: raw.location,
         company: company,
-        companyName: oneline(raw.companyName),
+        companyName: raw.companyName,
     };
 
     return offer;
 }
 
-function convertCompany(company) {
-    // ...
-    return company;
+function convertCompany(raw) {
+    return {
+        id: raw.id,
+        name: raw.name,
+        contacts: {
+            address: raw.address,
+            website: raw.website,
+            phone: randomPhoneNumber(),
+        },
+    };
 }
 
 module.exports = { convertJob, convertCompany };

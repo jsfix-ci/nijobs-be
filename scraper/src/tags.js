@@ -1,8 +1,6 @@
 // Deal with StackOverflow tags, and map them to nijobs TechnologyType
-const fs = require("fs");
 const {
-    makeFolderFor,
-    mapToUniqString,
+    writeUniqString,
     parseMultimapFile,
 } = require("./files");
 
@@ -34,96 +32,31 @@ const SUBSEQUENCE_TEST_MIN_LEN = 8;
 const REVERSE_SUBSEQUENCE_TEST_MIN_LEN = 7;
 
 // track the (number of) tags that were matched or not matched
-const rawTracker = new Map();
-const normalTracker = new Map();
-const mappedTracker = new Map();
 const unknownTracker = new Map();
 
 function loadTags() {
     return parseMultimapFile(TAGS_MAPPING_FILE);
 }
 
-function writeOneReport(filename, trackerMap) {
-    if (trackerMap.size === 0) return; // don't write reports for empty tracker
-    const file = `output/stats/${filename}`;
-    const dataText = mapToUniqString(trackerMap);
-    makeFolderFor(file);
-    fs.writeFileSync(file, dataText);
-}
-
 function writeReport() {
-    writeOneReport("raw_tags", rawTracker);
-    writeOneReport("normal_tags", normalTracker);
-    writeOneReport("mapped_tags", mappedTracker);
-    writeOneReport("unknown_tags", unknownTracker);
+    writeUniqString("output/stats/unknown_tags", unknownTracker);
 }
 
 function normalizeTag(rawTag) {
-    rawTracker.set(rawTag, (rawTracker.get(rawTag) || 0) + 1);
-
-    // is the tag listed?
-    let tag = rawTag.trim();
-    if (tagsMap.hasOwnProperty(tag))
-        return tag;
-
-    // try with lowercase only.
-    tag = tag.toLowerCase();
-    if (tagsMap.hasOwnProperty(tag))
-        return tag;
-
-    // try replacing spaces and underscores with dashes.
-    tag = tag.replace(/\s+|_/g, "-");
-    if (tagsMap.hasOwnProperty(tag))
-        return tag;
-
-    // remove versions at the end of the tag (e.g. css3, c++11, java-11).
-    tag = tag.replace(/-?\d+$/, "");
-    if (tagsMap.hasOwnProperty(tag))
-        return tag;
-
-    // remove extensions (.js) and repeat.
-    tag = tag.replace(/\.[a-z0-9]+$/, "").replace(/-?\d+$/, "");
-    if (tagsMap.hasOwnProperty(tag))
-        return tag;
-
-    // remove '.js$' brain damage.
-    tag = tag.replace(/\.?js$/, "").replace(/-?\d+$/, "");
-    if (tagsMap.hasOwnProperty(tag))
-        return tag;
-
-    // we are getting desperate, remove separators altogether.
-    tag = tag.replace(/-|\//g, "");
-    if (tagsMap.hasOwnProperty(tag))
-        return tag;
-
-    // take it as is then
-    return tag;
-}
-
-function trackNormalizeTag(rawTag) {
-    const tag = normalizeTag(rawTag);
-    if (tag)
-        normalTracker.set(tag, (normalTracker.get(tag) || 0) + 1);
+    const tag = rawTag.trim().toLowerCase()
+        .replace(/\s+|_/u, "-")
+        .replace(/-?\d+$/u, "")
+        .replace(/\.[a-z0-9]{1,4}$/iu, "").replace(/-?\d+$/u, "")
+        .replace(/-|\//u, "");
     return tag;
 }
 
 function normalizeTags(rawTag) {
     if (!rawTag) return null;
-
-    if (typeof rawTag === "object") {
-        // array of tags
-        return rawTag.map(trackNormalizeTag)
-            .filter((el) => el)
-            .sort()
+    if (typeof rawTag === "object")
+        return rawTag.map(normalizeTag).sort()
             .filter((el, i, a) => el && i === a.indexOf(el));
-    }
-
-    if (typeof rawTag !== "string") {
-        console.error("Invalid StackOverflow tag:", rawTag);
-        throw "Invalid Argument";
-    }
-
-    return trackNormalizeTag(rawTag);
+    return normalizeTag(rawTag);
 }
 
 function mapTag(rawTag) {
@@ -156,46 +89,17 @@ function mapTag(rawTag) {
                 return tagsMap[key];
 
     // give up
-
-    if (!unknownTracker.has(tag))
-        console.warn(`Could not map StackOverflow tag:  ${tag}`);
-
     unknownTracker.set(tag, (unknownTracker.get(tag) || 0) + 1);
 
     return null;
 }
 
-function trackMapTag(sotag) {
-    const tag = mapTag(sotag);
-    if (tag)
-        mappedTracker.set(tag, (mappedTracker.get(tag) || 0) + 1);
-    return tag;
-}
-
-/**
- * Attempt to map StackOverflow job offer tag(s) to nijobs TechnologyType names
- * Returns null if the mapping was not succesful, else the name found
- *
- * @param {String} sotag - StackOverflow tags, zero or more
- * @returns {Object}
- */
-function mapTags(sotag) {
-    if (!sotag) return null;
-
-    if (typeof sotag === "object") {
-        // array of tags
-        return sotag.map(trackMapTag)
-            .filter((el) => el)
-            .sort()
+function mapTags(tag) {
+    if (!tag) return null;
+    if (typeof tag === "object")
+        return tag.map(mapTag).filter((el) => el).sort()
             .filter((el, i, a) => el && i === a.indexOf(el));
-    }
-
-    if (typeof sotag !== "string") {
-        console.error("Invalid StackOverflow tag:", sotag);
-        throw "Invalid Argument";
-    }
-
-    return trackMapTag(sotag);
+    return mapTag(tag);
 }
 
 module.exports = { writeReport, mapTags, normalizeTags };

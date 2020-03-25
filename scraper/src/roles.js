@@ -1,10 +1,9 @@
 // Deal with StackOverflow developer roles and map them to nijobs FieldType
-const fs = require("fs");
 const {
-    makeFolderFor,
-    mapToUniqString,
+    writeUniqString,
     parseMapFile,
 } = require("./files");
+const { cleanline } = require("./strings");
 
 const GUESS_ROLES_MAPPING_FILE = "hydrate/roles";
 
@@ -35,10 +34,7 @@ function loadRoleGuesses() {
 }
 
 function writeReport() {
-    const unknownFile = "output/stats/unknown_roles";
-    const unknownData = mapToUniqString(unknownTracker);
-    makeFolderFor(unknownFile);
-    fs.writeFileSync(unknownFile, unknownData);
+    writeUniqString("output/stats/unknown_roles", unknownTracker);
 }
 
 function mapRole(role) {
@@ -53,23 +49,12 @@ function mapRole(role) {
     return null;
 }
 
-function mapRoles(sorole) {
-    if (!sorole) return null;
-
-    if (typeof sorole === "object") {
-        // array of sorole
-        return sorole.map(mapRole)
-            .filter((el) => el)
-            .sort()
+function mapRoles(role) {
+    if (!role) return null;
+    if (typeof role === "object")
+        return role.map(mapRole).filter((el) => el).sort()
             .filter((el, i, a) => el && i === a.indexOf(el));
-    }
-
-    if (typeof sorole !== "string") {
-        console.error("Invalid StackOverflow role:", sorole);
-        throw "Invalid Argument";
-    }
-
-    return mapRole(sorole);
+    return mapRole(role);
 }
 
 function guessFields({
@@ -78,14 +63,11 @@ function guessFields({
     tags,
     description,
 }) {
-    const normalize = (string) => (string || "").trim().replace(/\s+/, " ")
-        .toLowerCase().replace(/[^0-9a-z ]/g, "");
-
     const norm = {
-        title: normalize(title),
-        role: normalize(role),
-        tags: tags.map(normalize),
-        description: normalize(description),
+        title: cleanline(title),
+        role: cleanline(role),
+        tags: tags.map(cleanline),
+        description: cleanline(description),
     };
 
     // _very_ simple, dumb guess for now, which returns only one field
