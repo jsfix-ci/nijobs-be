@@ -1,0 +1,1285 @@
+{
+  "companies": {
+    "addvolt": {
+      "name": "AddVolt",
+      "contacts": {
+        "website": "https://addvolt.com"
+      },
+      "bio": "AddVolt's platform reduces CO2 in the heavy transportation sector"
+    },
+    "critical_techworks": {
+      "name": "Critical TechWorks",
+      "contacts": {
+        "website": "https://www.criticaltechworks.com"
+      },
+      "bio": "Developing next generation software systems for BMW"
+    },
+    "dtb_tech_&_data_hub": {
+      "name": "DTB Tech & Data Hub",
+      "contacts": {
+        "website": "https://techhublisbon.io"
+      },
+      "bio": "Daimler Trucks and Buses IoT data into intelligent global services"
+    },
+    "mercedes-benz.io": {
+      "name": "Mercedes-Benz.io",
+      "contacts": {
+        "website": "https://www.mercedes-benz.io"
+      },
+      "bio": "Shaping the digital future of Mercedes-Benz"
+    },
+    "stratio_automotive": {
+      "name": "Stratio Automotive",
+      "contacts": {
+        "website": "https://stratioautomotive.com"
+      },
+      "bio": "Vehicle data into predictive intelligence"
+    },
+    "volkswagen_digital_solutions": {
+      "name": "Volkswagen Digital Solutions",
+      "contacts": {
+        "website": "http://www.vwds.pt"
+      },
+      "bio": "Creating the digital ecosystem for the brands of the Volkswagen Group"
+    },
+    "25friday": {
+      "name": "25Friday",
+      "contacts": {
+        "website": "https://25friday.com"
+      },
+      "bio": "Digital product management focussed on growing tech companies"
+    },
+    "accenture": {
+      "name": "Accenture",
+      "contacts": {
+        "website": "https://www.accenture.com/pt-pt"
+      },
+      "bio": "Software Development, Cyber Security"
+    },
+    "addcode": {
+      "name": "AddCode",
+      "contacts": {
+        "website": "https://addcode-io.breezy.hr"
+      },
+      "bio": "Software engineering"
+    },
+    "adentis": {
+      "name": "Adentis",
+      "contacts": {
+        "website": "http://www.adentis.pt"
+      },
+      "bio": "Outsourcing, customized solutions and R&D"
+    },
+    "altran": {
+      "name": "Altran",
+      "contacts": {
+        "website": "https://www.altran.com/pt/pt-pt"
+      },
+      "bio": "Engineering and R&D services"
+    },
+    "armis": {
+      "name": "Armis",
+      "contacts": {
+        "website": "http://www.armisgroup.com"
+      },
+      "bio": "Technology development and consultancy"
+    },
+    "bool_software": {
+      "name": "Bool Software",
+      "contacts": {
+        "website": "https://www.bool.pt"
+      },
+      "bio": "Consultancy company specialized in OutSystems"
+    },
+    "caixa_mágica": {
+      "name": "Caixa Mágica",
+      "contacts": {
+        "website": "https://caixamagica.pt"
+      },
+      "bio": "Open Source development"
+    },
+    "cgi": {
+      "name": "CGI",
+      "contacts": {
+        "website": "https://www.cgi.com/portugal/pt-pt"
+      },
+      "bio": "Experience the commitment"
+    },
+    "darwinlabs": {
+      "name": "darwinLabs",
+      "contacts": {
+        "website": "https://www.darwin-labs.com"
+      },
+      "bio": "Building Software that matters"
+    },
+    "deloitte": {
+      "name": "Deloitte",
+      "contacts": {
+        "website": "https://www2.deloitte.com/pt/pt.html"
+      },
+      "bio": "Global consulting company"
+    },
+    "devscope": {
+      "name": "DevScope",
+      "contacts": {
+        "website": "http://devscope.net"
+      },
+      "bio": "Technology development, consultancy and product development"
+    },
+    "equal_experts": {
+      "name": "Equal Experts",
+      "contacts": {
+        "website": "https://www.equalexperts.com"
+      },
+      "bio": "Making software. Better"
+    },
+    "findmore": {
+      "name": "Findmore",
+      "contacts": {
+        "website": "https://findmore.pt"
+      },
+      "bio": "Nearshoring, software development, UX/UI Design and PMO"
+    },
+    "growin": {
+      "name": "Growin",
+      "contacts": {
+        "website": "https://www.growin.com"
+      },
+      "bio": "Software development and system analysis consultancy"
+    },
+    "javali": {
+      "name": "JAVALI",
+      "contacts": {
+        "website": "https://www.javali.pt"
+      },
+      "bio": "Web, Mobile and custom development. Mostly focused on Drupal"
+    },
+    "lis_@_ipn": {
+      "name": "LIS @ IPN",
+      "contacts": {
+        "website": "https://www.ipn.pt/laboratorio/LIS"
+      },
+      "bio": "Technological R&D and innovative multi-disciplinary projects"
+    },
+    "ltplabs": {
+      "name": "LTPLabs",
+      "contacts": {
+        "website": "https://www.ltplabs.com"
+      },
+      "bio": "Boutique analytical-driven management consultancy company"
+    },
+    "ki_labs": {
+      "name": "KI labs",
+      "contacts": {
+        "website": "https://ki-labs.com"
+      },
+      "bio": "Solve complex tech and business challenges for big corporations"
+    },
+    "innowave": {
+      "name": "InnoWave",
+      "contacts": {
+        "website": "https://innowave.tech"
+      },
+      "bio": "Global technology and consulting company"
+    },
+    "it_people": {
+      "name": "IT People",
+      "contacts": {
+        "website": "https://itpeople.pt"
+      },
+      "bio": "Outsourcing & Nearshore Development"
+    },
+    "mindera": {
+      "name": "Mindera",
+      "contacts": {
+        "website": "https://mindera.com"
+      },
+      "bio": "Technology development and consultancy"
+    },
+    "moxy": {
+      "name": "Moxy",
+      "contacts": {
+        "website": "https://moxy.studio"
+      },
+      "bio": "Interdisciplinary studio focused on design and development"
+    },
+    "noesis": {
+      "name": "Noesis",
+      "contacts": {
+        "website": "https://www.noesis.pt/pt/homepage"
+      },
+      "bio": "Consultancy and enterprise software"
+    },
+    "novabase": {
+      "name": "Novabase",
+      "contacts": {
+        "website": "http://www.novabase.pt"
+      },
+      "bio": "Simpler & happier"
+    },
+    "opensoft": {
+      "name": "Opensoft",
+      "contacts": {
+        "website": "https://www.opensoft.pt"
+      },
+      "bio": "Making life easier"
+    },
+    "premium_minds": {
+      "name": "Premium Minds",
+      "contacts": {
+        "website": "https://www.premium-minds.com"
+      },
+      "bio": "We build great software for innovative clients"
+    },
+    "present_technologies": {
+      "name": "Present Technologies",
+      "contacts": {
+        "website": "https://www.present-technologies.com"
+      },
+      "bio": "Delivering Quality Software"
+    },
+    "softinsa": {
+      "name": "Softinsa",
+      "contacts": {
+        "website": "https://www.softinsa.pt"
+      },
+      "bio": "Services Development and Application / Infrastructure Management"
+    },
+    "syone": {
+      "name": "Syone",
+      "contacts": {
+        "website": "https://www.syone.com"
+      },
+      "bio": "Outsourcing, nearshore, turnkey projects"
+    },
+    "tmc": {
+      "name": "TMC",
+      "contacts": {
+        "website": "https://tmc-employeneurship.com"
+      },
+      "bio": "Agile software development"
+    },
+    "ubiwhere": {
+      "name": "Ubiwhere",
+      "contacts": {
+        "website": "https://ubiwhere.com"
+      },
+      "bio": "Bleeding Edge Technologies with custom R&D"
+    },
+    "vilt_group": {
+      "name": "VILT Group",
+      "contacts": {
+        "website": "https://www.vilt-group.com"
+      },
+      "bio": "Consultancy and enterprise software"
+    },
+    "xpand_it": {
+      "name": "Xpand IT",
+      "contacts": {
+        "website": "https://www.xpand-it.com/pt-pt"
+      },
+      "bio": "Global consultancy company"
+    },
+    "affinity": {
+      "name": "Affinity",
+      "contacts": {
+        "website": "https://affinity.pt"
+      },
+      "bio": "Consultancy, Outsourcing"
+    },
+    "agap2": {
+      "name": "AGAP2",
+      "contacts": {
+        "website": "http://www.agap2-it.pt/Agap2IT"
+      },
+      "bio": "Consultancy, Outsourcing"
+    },
+    "alter_solutions": {
+      "name": "Alter Solutions",
+      "contacts": {
+        "website": "https://www.alter-solutions.com/pt-pt"
+      },
+      "bio": "Consultancy, Outsourcing, and Nearshore projects"
+    },
+    "aubay": {
+      "name": "Aubay",
+      "contacts": {
+        "website": "https://www.aubay.pt"
+      },
+      "bio": "Consultancy, Outsourcing, and Nearshore projects"
+    },
+    "bee_engineering": {
+      "name": "Bee Engineering",
+      "contacts": {
+        "website": "https://www.bee-eng.pt/pt"
+      },
+      "bio": "Consultancy, Outsourcing"
+    },
+    "bold_by_devoteam": {
+      "name": "BOLD by Devoteam",
+      "contacts": {
+        "website": "https://www.boldint.pt"
+      },
+      "bio": "Consultancy, Outsourcing"
+    },
+    "dellent_consulting": {
+      "name": "Dellent Consulting",
+      "contacts": {
+        "website": "https://dellentconsulting.com"
+      },
+      "bio": "Consultancy, Outsourcing"
+    },
+    "everis": {
+      "name": "Everis",
+      "contacts": {
+        "website": "https://www.everis.com/portugal/pt-pt/home-pt"
+      },
+      "bio": "Consultancy, Outsourcing"
+    },
+    "glandrive": {
+      "name": "GLanDrive",
+      "contacts": {
+        "website": "https://www.glandrive.pt"
+      },
+      "bio": "Consultancy, Outsourcing"
+    },
+    "kcsit": {
+      "name": "KCSIT",
+      "contacts": {
+        "website": "https://kcsit.pt"
+      },
+      "bio": "Consultancy, Outsourcing"
+    },
+    "kwan": {
+      "name": "KWAN",
+      "contacts": {
+        "website": "https://www.kwan.pt"
+      },
+      "bio": "Consultancy, Outsourcing"
+    },
+    "landing.jobs": {
+      "name": "Landing.jobs",
+      "contacts": {
+        "website": "https://landing.jobs"
+      },
+      "bio": "Helping people find the right fit tech job"
+    },
+    "multivision": {
+      "name": "Multivision",
+      "contacts": {
+        "website": "https://multivision.pt"
+      },
+      "bio": "Consultancy, Outsourcing"
+    },
+    "olisipo": {
+      "name": "Olisipo",
+      "contacts": {
+        "website": "https://www.olisipo.pt"
+      },
+      "bio": "Outsourcing, Training and Early-stage venture capital"
+    },
+    "prime_it": {
+      "name": "Prime IT",
+      "contacts": {
+        "website": "https://www.primeit.pt"
+      },
+      "bio": "Consultancy, Outsourcing"
+    },
+    "bi4all": {
+      "name": "BI4ALL",
+      "contacts": {
+        "website": "https://www.bi4all.pt/en"
+      },
+      "bio": "Consulting services with several analytics solutions"
+    },
+    "critical_software": {
+      "name": "Critical Software",
+      "contacts": {
+        "website": "https://www.criticalsoftware.com"
+      },
+      "bio": "Mission and business-critical applications"
+    },
+    "blockbird_ventures": {
+      "name": "blockbird Ventures",
+      "contacts": {
+        "website": "https://www.blockbird.ventures"
+      },
+      "bio": "Blockchain and Ethereum development"
+    },
+    "fruition_partners": {
+      "name": "Fruition Partners",
+      "contacts": {
+        "website": "https://www.fruitionpartners.nl"
+      },
+      "bio": "Consultancy and Application Development based on ServiceNow"
+    },
+    "jta": {
+      "name": "JTA",
+      "contacts": {
+        "website": "https://www.thedatascientists.com"
+      },
+      "bio": "Machine Learning, Reporting and custom vizualizations services"
+    },
+    "kwanko": {
+      "name": "Kwanko",
+      "contacts": {
+        "website": "https://kwanko.com"
+      },
+      "bio": "An International leader in Crossdevice Performance Marketing"
+    },
+    "nilg.ai": {
+      "name": "NILG.AI",
+      "contacts": {
+        "website": "http://www.nilg.ai"
+      },
+      "bio": "Transforming data into actionable knowledge through AI"
+    },
+    "bliss_applications": {
+      "name": "Bliss Applications",
+      "contacts": {
+        "website": "https://www.blissapplications.com"
+      },
+      "bio": "UX/UI & software-driven company"
+    },
+    "coletiv": {
+      "name": "Coletiv",
+      "contacts": {
+        "website": "https://www.coletiv.com"
+      },
+      "bio": "Mobile and backend development"
+    },
+    "dengun": {
+      "name": "Dengun",
+      "contacts": {
+        "website": "https://www.dengun.com/en"
+      },
+      "bio": "Web, Mobile development and digital marketing"
+    },
+    "imaginary_cloud": {
+      "name": "Imaginary Cloud",
+      "contacts": {
+        "website": "https://www.imaginarycloud.com"
+      },
+      "bio": "Web, mobile, development and design services"
+    },
+    "load": {
+      "name": "Load",
+      "contacts": {
+        "website": "http://load.digital"
+      },
+      "bio": "Design Thinking, Web, Mobile, IoT, New Tech"
+    },
+    "mosano": {
+      "name": "Mosano",
+      "contacts": {
+        "website": "https://mosano.eu"
+      },
+      "bio": "Software House focusing Digital Products for the web and mobile"
+    },
+    "pixelmatters": {
+      "name": "Pixelmatters",
+      "contacts": {
+        "website": "https://pixelmatters.com"
+      },
+      "bio": "Digital product design and development company"
+    },
+    "redlight_software": {
+      "name": "Redlight Software",
+      "contacts": {
+        "website": "https://weareredlight.com"
+      },
+      "bio": "Web and mobile development studio focused on products"
+    },
+    "runtime_revolution": {
+      "name": "Runtime Revolution",
+      "contacts": {
+        "website": "https://www.runtime-revolution.com"
+      },
+      "bio": "Web and mobile product development"
+    },
+    "significa": {
+      "name": "Significa",
+      "contacts": {
+        "website": "https://www.significa.pt"
+      },
+      "bio": "Design and Front-End Web development"
+    },
+    "subvisual": {
+      "name": "Subvisual",
+      "contacts": {
+        "website": "https://subvisual.com"
+      },
+      "bio": "Web development and design firm"
+    },
+    "thing_pink": {
+      "name": "Thing Pink",
+      "contacts": {
+        "website": "http://www.thing-pink.pt"
+      },
+      "bio": "Digital Agency with focus on Web, Mobile and IoT"
+    },
+    "vizzuality": {
+      "name": "Vizzuality",
+      "contacts": {
+        "website": "https://www.vizzuality.com"
+      },
+      "bio": "Digital Agency focused in having a positive impact in the world"
+    },
+    "waterdog": {
+      "name": "Waterdog",
+      "contacts": {
+        "website": "https://waterdog.mobi"
+      },
+      "bio": "Web and Mobile development"
+    },
+    "whitesmith": {
+      "name": "Whitesmith",
+      "contacts": {
+        "website": "https://www.whitesmith.co"
+      },
+      "bio": "Helping clients build amazing digital products that people love"
+    },
+    "yld": {
+      "name": "YLD",
+      "contacts": {
+        "website": "https://www.yld.io"
+      },
+      "bio": "Software engineering, design, training and open-source"
+    },
+    "codacy": {
+      "name": "Codacy",
+      "contacts": {
+        "website": "https://www.codacy.com"
+      },
+      "bio": "Automated code reviews & code analytics"
+    },
+    "dashdash": {
+      "name": "DashDash",
+      "contacts": {
+        "website": "https://dashdash.com"
+      },
+      "bio": "Create interactive web apps using spreadsheet skills"
+    },
+    "oracle": {
+      "name": "Oracle",
+      "contacts": {
+        "website": "https://www.oracle.com/index.html"
+      },
+      "bio": "DBMS's and information systems"
+    },
+    "outsystems": {
+      "name": "OutSystems",
+      "contacts": {
+        "website": "https://www.outsystems.com"
+      },
+      "bio": "Low-code platform to visually develop applications"
+    },
+    "unbabel": {
+      "name": "Unbabel",
+      "contacts": {
+        "website": "https://unbabel.com"
+      },
+      "bio": "Translation as a Service"
+    },
+    "360imprimir": {
+      "name": "360imprimir",
+      "contacts": {
+        "website": "https://www.360imprimir.pt"
+      },
+      "bio": "Online platform for marketing products and services"
+    },
+    "aptoide": {
+      "name": "Aptoide",
+      "contacts": {
+        "website": "https://www.aptoide.com"
+      },
+      "bio": "Your Android app store"
+    },
+    "blip": {
+      "name": "Blip",
+      "contacts": {
+        "website": "https://blip.pt"
+      },
+      "bio": "Online betting and gambling operator"
+    },
+    "farfetch": {
+      "name": "Farfetch",
+      "contacts": {
+        "website": "https://www.farfetch.com"
+      },
+      "bio": "Global technology platform for luxury fashion"
+    },
+    "jumia": {
+      "name": "Jumia",
+      "contacts": {
+        "website": "https://group.jumia.com"
+      },
+      "bio": "Online Shopping for Electronics, Phones & Fashion in Africa"
+    },
+    "jumpseller": {
+      "name": "Jumpseller",
+      "contacts": {
+        "website": "https://jumpseller.com"
+      },
+      "bio": "E-commerce platform to create online stores"
+    },
+    "la_redoute": {
+      "name": "La Redoute",
+      "contacts": {
+        "website": "https://www.laredoute-corporate.com/en/homepage"
+      },
+      "bio": "Home & Fashion online"
+    },
+    "olx": {
+      "name": "OLX",
+      "contacts": {
+        "website": "https://www.olxgroup.com"
+      },
+      "bio": "Network of market-leading trading platforms across 5 countries"
+    },
+    "platforme": {
+      "name": "Platforme",
+      "contacts": {
+        "website": "https://platforme.com"
+      },
+      "bio": "Dynamic product as a service. Leaders in customisation"
+    },
+    "prozis": {
+      "name": "Prozis",
+      "contacts": {
+        "website": "https://www.prozis.com/pt/en"
+      },
+      "bio": "Sports and nutrition online store"
+    },
+    "salsify": {
+      "name": "Salsify",
+      "contacts": {
+        "website": "https://www.salsify.com"
+      },
+      "bio": "Product Experience Management and Syndication platform"
+    },
+    "trouva": {
+      "name": "Trouva",
+      "contacts": {
+        "website": "https://www.trouva.com"
+      },
+      "bio": "Marketplace for independent boutiques"
+    },
+    "uniplaces": {
+      "name": "Uniplaces",
+      "contacts": {
+        "website": "https://www.uniplaces.com"
+      },
+      "bio": "Student accomodation platform"
+    },
+    "dreamshaper": {
+      "name": "DreamShaper",
+      "contacts": {
+        "website": "https://dreamshaper.com"
+      },
+      "bio": "Classroom tools to improve student work related skills"
+    },
+    "edubox": {
+      "name": "Edubox",
+      "contacts": {
+        "website": "https://edubox.pt"
+      },
+      "bio": "Educational solutions and school management software"
+    },
+    "elsa": {
+      "name": "ELSA",
+      "contacts": {
+        "website": "https://elsaspeak.com"
+      },
+      "bio": "AI-powered tool to improve pronunciation skills"
+    },
+    "musa_software": {
+      "name": "MUSa Software",
+      "contacts": {
+        "website": "https://musasoftware.com"
+      },
+      "bio": "ERP and web products for art schools"
+    },
+    "amplemarket": {
+      "name": "Amplemarket",
+      "contacts": {
+        "website": "https://amplemarket.com"
+      },
+      "bio": "AI powered sales assistant"
+    },
+    "clanhr": {
+      "name": "ClanHR",
+      "contacts": {
+        "website": "https://www.clanhr.com"
+      },
+      "bio": "Online Human Resources Management Software"
+    },
+    "critical_manufacturing": {
+      "name": "Critical Manufacturing",
+      "contacts": {
+        "website": "https://www.criticalmanufacturing.com"
+      },
+      "bio": "Manufacturing business-critical applications"
+    },
+    "elecnor_deimos": {
+      "name": "Elecnor Deimos",
+      "contacts": {
+        "website": "http://www.elecnor-deimos.com"
+      },
+      "bio": "Advanced design solutions and turn-key space software systems"
+    },
+    "glintt": {
+      "name": "Glintt",
+      "contacts": {
+        "website": "https://www.glintt.com"
+      },
+      "bio": "Healthcare software"
+    },
+    "gmv": {
+      "name": "GMV",
+      "contacts": {
+        "website": "https://www.gmv.com"
+      },
+      "bio": "Advanced solutions in many sectors"
+    },
+    "hitachi_vantara": {
+      "name": "Hitachi Vantara",
+      "contacts": {
+        "website": "https://www.hitachivantara.com"
+      },
+      "bio": "IoT, cloud, application, big data and analytics solutions"
+    },
+    "innovationcast": {
+      "name": "InnovationCast",
+      "contacts": {
+        "website": "https://innovationcast.com"
+      },
+      "bio": "Collaborative Innovation Management Software"
+    },
+    "invoicexpress": {
+      "name": "InvoiceXpress",
+      "contacts": {
+        "website": "https://www.invoicexpress.com"
+      },
+      "bio": "Online Invoicing Software"
+    },
+    "keep_solutions": {
+      "name": "KEEP SOLUTIONS",
+      "contacts": {
+        "website": "https://www.keep.pt"
+      },
+      "bio": "Advanced solutions for information management"
+    },
+    "kununu": {
+      "name": "kununu",
+      "contacts": {
+        "website": "https://www.kununu.com"
+      },
+      "bio": "Workplace insights that matter"
+    },
+    "mind": {
+      "name": "Mind",
+      "contacts": {
+        "website": "http://www.mind.pt"
+      },
+      "bio": "Information management and industrial systems"
+    },
+    "nmbrs": {
+      "name": "Nmbrs",
+      "contacts": {
+        "website": "https://www.nmbrs.com"
+      },
+      "bio": "HR & Payroll software"
+    },
+    "petapilot": {
+      "name": "Petapilot",
+      "contacts": {
+        "website": "https://www.petapilot.com"
+      },
+      "bio": "Big Data Solutions"
+    },
+    "phc_software": {
+      "name": "PHC Software",
+      "contacts": {
+        "website": "https://www.phcsoftware.com"
+      },
+      "bio": "ERP software"
+    },
+    "primavera_bss": {
+      "name": "Primavera BSS",
+      "contacts": {
+        "website": "https://pt.primaverabss.com/pt"
+      },
+      "bio": "Enterprise resource planning software"
+    },
+    "quidgest": {
+      "name": "Quidgest",
+      "contacts": {
+        "website": "https://quidgest.com"
+      },
+      "bio": "Information systems and ERP software"
+    },
+    "sherpany": {
+      "name": "Sherpany",
+      "contacts": {
+        "website": "https://www.sherpany.com"
+      },
+      "bio": "Meeting Management Software for Leaders"
+    },
+    "skeeled": {
+      "name": "skeeled",
+      "contacts": {
+        "website": "https://www.skeeled.com"
+      },
+      "bio": "SaaS Talent Acquisition Software"
+    },
+    "unit4": {
+      "name": "Unit4",
+      "contacts": {
+        "website": "https://www.unit4.com"
+      },
+      "bio": "ERP, Consulting"
+    },
+    "vakt_global_ltd.": {
+      "name": "VAKT Global Ltd.",
+      "contacts": {
+        "website": "https://www.vakt.com"
+      },
+      "bio": "Enterprise grade blockchain commodities trading platform"
+    },
+    "void_software": {
+      "name": "VOID Software",
+      "contacts": {
+        "website": "https://www.void.pt"
+      },
+      "bio": "Systems design & architecture using different technology stacks"
+    },
+    "wedo_technologies": {
+      "name": "WeDo Technologies",
+      "contacts": {
+        "website": "https://www.wedotechnologies.com"
+      },
+      "bio": "Revenue Assurance and Fraud Management solutions"
+    },
+    "banco_atlântico_europa": {
+      "name": "Banco Atlântico Europa",
+      "contacts": {
+        "website": "https://www.atlantico.eu"
+      },
+      "bio": "An European bank, under the supervision of Banco de Portugal"
+    },
+    "compare_group": {
+      "name": "Compare Group",
+      "contacts": {
+        "website": "http://www.compareeuropegroup.com"
+      },
+      "bio": "Financial products comparision for several markets"
+    },
+    "euronext": {
+      "name": "Euronext",
+      "contacts": {
+        "website": "https://www.euronext.com"
+      },
+      "bio": "European stock exchange operator"
+    },
+    "feedzai": {
+      "name": "Feedzai",
+      "contacts": {
+        "website": "https://feedzai.com"
+      },
+      "bio": "Fraud detection platform to make commerce safe"
+    },
+    "fidel": {
+      "name": "Fidel",
+      "contacts": {
+        "website": "https://fidel.uk"
+      },
+      "bio": "One API for linking bank cards to digital applications, globally"
+    },
+    "finiam": {
+      "name": "Finiam",
+      "contacts": {
+        "website": "https://www.finiam.com"
+      },
+      "bio": "Improving people's lives by untangling the financial world"
+    },
+    "fractal": {
+      "name": "Fractal",
+      "contacts": {
+        "website": "https://company.fractal.id"
+      },
+      "bio": "Enabling open finance with a new Internet Identity layer"
+    },
+    "iban_wallet": {
+      "name": "Iban Wallet",
+      "contacts": {
+        "website": "https://www.ibanwallet.com"
+      },
+      "bio": "Invest in secured loans"
+    },
+    "itsector": {
+      "name": "ITSector",
+      "contacts": {
+        "website": "https://www.itsector.pt/pt"
+      },
+      "bio": "Software for financial institutions"
+    },
+    "jumo": {
+      "name": "JUMO",
+      "contacts": {
+        "website": "https://www.jumo.world"
+      },
+      "bio": "Financial inclusion platform"
+    },
+    "loandolphin": {
+      "name": "LoanDolphin",
+      "contacts": {
+        "website": "https://loandolphin.com.au"
+      },
+      "bio": "Home loan marketplace"
+    },
+    "natixis": {
+      "name": "Natixis",
+      "contacts": {
+        "website": "https://www.natixis.com"
+      },
+      "bio": "French corporate and investment bank"
+    },
+    "onfido": {
+      "name": "Onfido",
+      "contacts": {
+        "website": "https://www.onfido.com"
+      },
+      "bio": "Identity verification at the speed of life"
+    },
+    "seedrs": {
+      "name": "Seedrs",
+      "contacts": {
+        "website": "https://www.seedrs.com"
+      },
+      "bio": "Equity marketplace for everyone"
+    },
+    "studentfinance": {
+      "name": "StudentFinance",
+      "contacts": {
+        "website": "https://studentfinance.com"
+      },
+      "bio": "Disrupting education through Income Share Agreements"
+    },
+    "uphold": {
+      "name": "Uphold",
+      "contacts": {
+        "website": "https://uphold.com"
+      },
+      "bio": "US cloud based financial services platform"
+    },
+    "fabamaq": {
+      "name": "Fabamaq",
+      "contacts": {
+        "website": "https://www.fabamaq.com"
+      },
+      "bio": "Casino digital games"
+    },
+    "fun_punch_games": {
+      "name": "Fun Punch Games",
+      "contacts": {
+        "website": "https://funpunchgames.com"
+      },
+      "bio": "Independent game development studio"
+    },
+    "ground_control": {
+      "name": "Ground Control",
+      "contacts": {
+        "website": "http://www.gcontrolgames.com"
+      },
+      "bio": "Indie games/VR studio"
+    },
+    "miniclip": {
+      "name": "Miniclip",
+      "contacts": {
+        "website": "https://www.miniclip.com"
+      },
+      "bio": "Mobile and web game development company"
+    },
+    "not_a_game_studio": {
+      "name": "Not a Game Studio",
+      "contacts": {
+        "website": "http://www.notagamestudio.com"
+      },
+      "bio": "Game development studio focused on the experience of the users"
+    },
+    "zpx": {
+      "name": "ZPX",
+      "contacts": {
+        "website": "https://www.zpx.pt"
+      },
+      "bio": "Full-range game development studio offering design, art, coding"
+    },
+    "criteria_marathon": {
+      "name": "Criteria Marathon",
+      "contacts": {
+        "website": "https://www.criteriamarathon.com"
+      },
+      "bio": "Software Engineering and Information Technologies in the Medical Sector"
+    },
+    "ilof": {
+      "name": "iLoF",
+      "contacts": {
+        "website": "https://ilof.tech"
+      },
+      "bio": "Revolutionizing Alzheimer’s drug discovery using bio-photonics and AI"
+    },
+    "glookast": {
+      "name": "Glookast",
+      "contacts": {
+        "website": "https://www.glookast.com"
+      },
+      "bio": "Solving the media workflow puzzle"
+    },
+    "mediagaps": {
+      "name": "MediaGaps",
+      "contacts": {
+        "website": "http://www.mediagaps.com"
+      },
+      "bio": "Bridging your workflow gaps"
+    },
+    "mog_technologies": {
+      "name": "MOG Technologies",
+      "contacts": {
+        "website": "https://www.mog-technologies.com"
+      },
+      "bio": "End-to-end solutions for professional media"
+    },
+    "sky": {
+      "name": "Sky",
+      "contacts": {
+        "website": "https://www.sky.com"
+      },
+      "bio": "TV, broadband, talk, streaming and mobile"
+    },
+    "abyssal": {
+      "name": "Abyssal",
+      "contacts": {
+        "website": "https://abyssal.eu"
+      },
+      "bio": "3D Visualization, Simulation and Digitalization for subsea operations"
+    },
+    "oceanscan-mst": {
+      "name": "OceanScan-MST",
+      "contacts": {
+        "website": "https://www.oceanscan-mst.com"
+      },
+      "bio": "Lightweight Autonomous Underwater Vehicle manufacturer"
+    },
+    "xsealence": {
+      "name": "Xsealence",
+      "contacts": {
+        "website": "https://www.xsealence.pt"
+      },
+      "bio": "Solutions for command, control and monitoring of maritime applications"
+    },
+    "adamant_sec": {
+      "name": "Adamant Sec",
+      "contacts": {
+        "website": "https://adamantsec.com"
+      },
+      "bio": "Pentesting, consulting and audit"
+    },
+    "blaze_information_security": {
+      "name": "Blaze Information Security",
+      "contacts": {
+        "website": "https://www.blazeinfosec.com"
+      },
+      "bio": "Pentesting, consulting and research"
+    },
+    "char49": {
+      "name": "Char49",
+      "contacts": {
+        "website": "https://www.char49.com"
+      },
+      "bio": "Pentesting, consulting and training"
+    },
+    "checkmarx": {
+      "name": "Checkmarx",
+      "contacts": {
+        "website": "https://www.checkmarx.com"
+      },
+      "bio": "Manage Software Exposure at the Speed of DevOps"
+    },
+    "cybersafe": {
+      "name": "Cybersafe",
+      "contacts": {
+        "website": "https://www.cybersafe.pt"
+      },
+      "bio": "Training, solutions integrator and managed security services"
+    },
+    "dashlane": {
+      "name": "Dashlane",
+      "contacts": {
+        "website": "https://www.dashlane.com"
+      },
+      "bio": "Password manager and online security app"
+    },
+    "dognaedis": {
+      "name": "Dognaedis",
+      "contacts": {
+        "website": "https://www.dognaedis.com"
+      },
+      "bio": "Security services for enterprises and government agencies"
+    },
+    "fyde": {
+      "name": "Fyde",
+      "contacts": {
+        "website": "https://www.fyde.com"
+      },
+      "bio": "Software-defined remote access and security solution"
+    },
+    "integrity": {
+      "name": "Integrity",
+      "contacts": {
+        "website": "https://www.integrity.pt"
+      },
+      "bio": "Consulting and tech audit focused on information Security"
+    },
+    "jscrambler": {
+      "name": "JScrambler",
+      "contacts": {
+        "website": "https://jscrambler.com"
+      },
+      "bio": "JavaScript application integrity and security"
+    },
+    "layer8": {
+      "name": "Layer8",
+      "contacts": {
+        "website": "https://www.layer8.pt"
+      },
+      "bio": "Consulting, technology and security managed services"
+    },
+    "multicert": {
+      "name": "Multicert",
+      "contacts": {
+        "website": "https://www.multicert.com"
+      },
+      "bio": "CA, enterprise security software products and consulting"
+    },
+    "probely": {
+      "name": "Probely",
+      "contacts": {
+        "website": "https://probely.com"
+      },
+      "bio": "Automated web application security scanning as a service"
+    },
+    "s21sec": {
+      "name": "S21sec",
+      "contacts": {
+        "website": "https://www.s21sec.com"
+      },
+      "bio": "Cybersecurity services"
+    },
+    "symantec": {
+      "name": "Symantec",
+      "contacts": {
+        "website": "https://www.symantec.com"
+      },
+      "bio": "Enterprise and Consumer Security Products"
+    },
+    "xing": {
+      "name": "XING",
+      "contacts": {
+        "website": "https://www.xing.com"
+      },
+      "bio": "For a better working life"
+    },
+    "youclap": {
+      "name": "YouClap",
+      "contacts": {
+        "website": "https://youclap.tech"
+      },
+      "bio": "Create, participate and share awesome challenges"
+    },
+    "altice_labs": {
+      "name": "Altice Labs",
+      "contacts": {
+        "website": "http://www.alticelabs.com/pt"
+      },
+      "bio": "Telecommunications technologies"
+    },
+    "carrot": {
+      "name": "Carrot",
+      "contacts": {
+        "website": "https://carrotincentives.com"
+      },
+      "bio": "ICM for Telco companies"
+    },
+    "celfocus": {
+      "name": "Celfocus",
+      "contacts": {
+        "website": "https://www.celfocus.com"
+      },
+      "bio": "Vodafone technology development"
+    },
+    "gocontact": {
+      "name": "GoContact",
+      "contacts": {
+        "website": "https://www.gocontact.pt"
+      },
+      "bio": "Company specialized in integrated solutions for Contact Centers"
+    },
+    "readiness_it": {
+      "name": "Readiness IT",
+      "contacts": {
+        "website": "https://readinessit.com"
+      },
+      "bio": "Telecommunications technologies"
+    },
+    "talkdesk": {
+      "name": "Talkdesk",
+      "contacts": {
+        "website": "https://www.talkdesk.com"
+      },
+      "bio": "Enterprise cloud contact center"
+    },
+    "wit_software": {
+      "name": "WIT Software",
+      "contacts": {
+        "website": "https://www.wit-software.com"
+      },
+      "bio": "Software development for telcom services"
+    },
+    "truphone": {
+      "name": "Truphone",
+      "contacts": {
+        "website": "https://www.truphone.com"
+      },
+      "bio": "Global mobile connectivity and eSIM technology innovator"
+    },
+    "edreams_odigeo": {
+      "name": "eDreams ODIGEO",
+      "contacts": {
+        "website": "https://www.edreamsodigeo.com"
+      },
+      "bio": "We are shaping the way people travel today and tomorrow"
+    },
+    "hostelworld": {
+      "name": "Hostelworld",
+      "contacts": {
+        "website": "https://www.hostelworld.com"
+      },
+      "bio": "World's leading hostel-focused online booking platform"
+    },
+    "skyhour": {
+      "name": "Skyhour",
+      "contacts": {
+        "website": "https://skyhour.com"
+      },
+      "bio": "Give and receive air travel"
+    },
+    "tripadvisor": {
+      "name": "TripAdvisor",
+      "contacts": {
+        "website": "https://www.tripadvisor.com"
+      },
+      "bio": "The largest \"social travel website\" in the world"
+    }
+  }
+}
