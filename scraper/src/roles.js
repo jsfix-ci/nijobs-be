@@ -38,7 +38,7 @@ function writeReport() {
 }
 
 function mapRole(role) {
-    if (rolesMap.hasOwnProperty(role))
+    if ({}.hasOwnProperty.call(rolesMap, role))
         return role;
 
     if (!unknownTracker.has(role))

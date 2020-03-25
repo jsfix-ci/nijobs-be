@@ -30,7 +30,7 @@ const stackoverflow = got.extend({
 function keyBy(array, key) {
     const obj = {};
     for (const entry of array)
-        if (entry.hasOwnProperty(key))
+        if ({}.hasOwnProperty.call(entry, key))
             obj[entry[key]] = entry;
     return obj;
 }
@@ -133,7 +133,7 @@ function makeProgressCallbacks() {
 
         if (process.stderr.isTTY)
             process.stderr.write(
-                `\rMining... (${ap}/${tp}p  ${a}/${t}j)  failed: ${fp}p  ${f}j${nl}\r`
+                `\rMining... (${ap}/${tp}p  ${a}/${t}j)  failed: ${fp}p  ${f}j${nl}\r`,
             );
     };
     const endJob = () => {

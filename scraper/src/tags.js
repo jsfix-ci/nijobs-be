@@ -62,7 +62,7 @@ function normalizeTags(rawTag) {
 function mapTag(rawTag) {
     // the tag should already be normalized
     const tag = normalizeTag(rawTag);
-    if (tagsMap.hasOwnProperty(tag))
+    if ({}.hasOwnProperty.call(tagsMap, tag))
         return tagsMap[tag];
     if (ignoreTags.has(tag))
         return null;

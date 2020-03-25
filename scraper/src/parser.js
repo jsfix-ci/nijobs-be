@@ -75,7 +75,7 @@ function parseStackOverflow({ id, job$, row$ }) {
 }
 
 function addCompany(raw) {
-    if (companies.hasOwnProperty(raw.company)) return;
+    if ({}.hasOwnProperty.call(companies, raw.company)) return;
 
     companies[raw.company] = {
         id: raw.company,
