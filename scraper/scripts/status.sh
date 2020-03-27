@@ -3,64 +3,82 @@
 set -eufo pipefail
 ACTION="${1:-all}"
 
-print_tree() { test "$ACTION" = "all" ; }
-print_scrap() { test "$ACTION" = "all" || test "$ACTION" = "scrap" ; }
-print_nijobs() { test "$ACTION" = "all" || test "$ACTION" = "nijobs" ; }
-print_data() { test "$ACTION" = "all" || test "$ACTION" = "data" ; }
-
-simple_tree() {
-	test -d "$1" || return 0
-	tree --si --noreport --timefmt='%H:%m' --dirsfirst -CDL 2 "$1"
+any_of() {
+	for option in "$@"; do
+		if test "$ACTION" = "$option"; then return 0; fi
+	done
+	return 1
 }
-count_yaml_files() {
-	test -d "$1" || return 0
+print_listings() { any_of "all" "listings" "fetch" ; }
+print_html() { any_of "all" "html" "visit" ; }
+print_raw() { any_of "all" "raw" "scrap" ; }
+print_link() { any_of "all" "link" "adopt" ; }
+print_orphans() { any_of "all" "orphan" "orphans" ; }
+print_nijobs() { any_of "all" "nijobs" "convert" ; }
+print_data() { any_of "all" "data" "accept" "done" ; }
+
+count_files() {
 	local count
-	count=$(find "$1" -name '*.yaml' | wc -l)
-	echo -e "$count\t\t$1"
+	if test -d "$2"; then
+		count=$(find "$2" -name "*.$1" 2>/dev/null | wc -l || true)
+	else
+		count=0
+	fi
+	echo -e "$count\t\t${3:-$2}"
 }
 count_json_keys() {
-	test -f "$1" || return 0
 	local count
-	count=$(jq '.[].id' "$1" | wc -l)
-	echo -e "$count\t\t$1"
+	if test -f "$1"; then
+		count=$(jq 'length' "$1")
+	else
+		count=0
+	fi
+	echo -e "$count\t\t${2:-$1}"
 }
-overall() {
-	test -f "output/$1/stats/overall" || return 0
-	echo "----- $1 stats"
-	grep -Eve '^\s*#|^\s*$' <"output/$1/stats/overall"
-}
+count_html_files() { count_files "html" "$1" "$2" ; }
+count_yaml_files() { count_files "yaml" "$1" "$2" ; }
 
-if ! test -d "output" && ! test -d "data"; then
-	echo "No scrap or data files"
+if ! test -d "out" && ! test -d "data"; then
 	exit 0
 fi
 
-if print_tree; then
-	simple_tree "output/"
-	simple_tree "data/"
+if print_listings && test -d "out/listings/"; then
+	echo "------- listings"
+	count_html_files "out/listings/offers/"    "offer listings"
+	count_html_files "out/listings/companies/" "company listings"
 fi
 
-if print_scrap && test -d "output/scrap/"; then
-	echo "---------- scrap"
-	count_yaml_files "output/scrap/jobs/"
-	count_yaml_files "output/scrap/companies/"
-	count_yaml_files "output/scrap/pages/"
-	count_json_keys "output/scrap/all_jobs.json"
-	count_json_keys "output/scrap/all_companies.json"
-	overall "scrap"
+if print_html && test -d "out/html/"; then
+	echo "------- visit"
+	count_html_files "out/html/offers/"    "offer html pages"
+	count_html_files "out/html/companies/" "company html pages"
 fi
 
-if print_nijobs && test -d "output/nijobs/"; then
-	echo "---------- nijobs"
-	count_yaml_files "output/nijobs/offers/"
-	count_yaml_files "output/nijobs/companies/"
-	count_json_keys "output/nijobs/all_offers.json"
-	count_json_keys "output/nijobs/all_companies.json"
-	overall "nijobs"
+if print_raw && test -d "out/raw/"; then
+	echo "------- scrap"
+	count_yaml_files "out/raw/offers/"            "raw offers"
+	count_yaml_files "out/raw/companies/"        "raw companies"
+fi
+
+if print_link && test -d "out/link/"; then
+	echo "------- link"
+	count_yaml_files "out/link/offers/"            "linked offers"
+	count_yaml_files "out/link/companies/"        "linked companies"
+fi
+
+if print_orphans && test -d "out/orphans/"; then
+	echo "------- orphans"
+	count_yaml_files "out/orphans/" "orphaned offer files"
+fi
+
+if print_nijobs && test -d "out/nijobs/"; then
+	echo "------- nijobs"
+	count_yaml_files "out/nijobs/offers/"    "nijobs offers"
+	count_yaml_files "out/nijobs/companies/" "nijobs companies"
 fi
 
 if print_data && test -d "data"; then
-	echo "---------- data"
+	echo "------- data"
 	count_json_keys "data/offers.json"
 	count_json_keys "data/companies.json"
 fi

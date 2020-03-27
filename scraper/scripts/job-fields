@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+# FIELD="$1"
+
+yq -C "([.id, .$1])|join(\" º \")" offers/raw/*.yaml | column -t -E1 -s'º'

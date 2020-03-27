@@ -39,7 +39,7 @@ function loadTags() {
 }
 
 function writeReport() {
-    writeUniqString("output/stats/unknown_tags", unknownTracker);
+    writeUniqString("out/stats/unknown_tags", unknownTracker);
 }
 
 function normalizeTag(rawTag) {
@@ -102,4 +102,4 @@ function mapTags(tag) {
     return mapTag(tag);
 }
 
-module.exports = { writeReport, mapTags, normalizeTags };
+module.exports = Object.freeze({ writeReport, mapTags, normalizeTags });

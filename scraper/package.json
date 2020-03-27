@@ -4,7 +4,12 @@
   "description": "Scraper for StackOverflow jobs",
   "main": "src/index.js",
   "scripts": {
-    "start": "make all"
+    "start": "make all",
+    "prod": "false",
+    "lint": "eslint src test --max-warnings 0",
+    "lint-fix": "npm run lint -- --fix",
+    "test": "true",
+    "ci": "npm run lint"
   },
   "repository": {
     "type": "git",

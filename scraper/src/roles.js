@@ -1,9 +1,10 @@
 // Deal with StackOverflow developer roles and map them to nijobs FieldType
+const { simpleline } = require("./strings");
+const { warn } = require("./progress");
 const {
     writeUniqString,
     parseMapFile,
 } = require("./files");
-const { cleanline } = require("./strings");
 
 const GUESS_ROLES_MAPPING_FILE = "hydrate/roles";
 
@@ -34,7 +35,7 @@ function loadRoleGuesses() {
 }
 
 function writeReport() {
-    writeUniqString("output/stats/unknown_roles", unknownTracker);
+    writeUniqString("out/stats/unknown_roles", unknownTracker);
 }
 
 function mapRole(role) {
@@ -42,7 +43,7 @@ function mapRole(role) {
         return role;
 
     if (!unknownTracker.has(role))
-        console.warn(`Could not map StackOverflow role:  ${role}`);
+        warn(`Could not map StackOverflow role:  ${role}`);
 
     unknownTracker.set(role, (unknownTracker.get(role) || 0) + 1);
 
@@ -64,10 +65,10 @@ function guessFields({
     description,
 }) {
     const norm = {
-        title: cleanline(title),
-        role: cleanline(role),
-        tags: tags.map(cleanline),
-        description: cleanline(description),
+        title: simpleline(title),
+        role: simpleline(role),
+        tags: tags.map(simpleline),
+        description: simpleline(description),
     };
 
     // _very_ simple, dumb guess for now, which returns only one field
@@ -84,4 +85,4 @@ function guessFields({
     return ["OTHER"];
 }
 
-module.exports = { writeReport, mapRoles, guessFields };
+module.exports = Object.freeze({ writeReport, mapRoles, guessFields });

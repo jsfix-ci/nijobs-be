@@ -1,49 +1,34 @@
 // Convert StackOverflow raw job/company to nijobs offer/company
 const { mapTags } = require("./tags");
 const { guessFields } = require("./roles");
-const {
-    identifier,
-    oneline,
-    multiline,
-    english,
-} = require("./strings");
+const { domainname, oneline, english } = require("./strings");
 const {
     randomBoolean,
     randomVacancies,
     randomPhoneNumber,
     randomOf,
-    fromAgoDate,
     fewWeeksAfter,
     randomJobDuration,
 } = require("./random");
 const JobTypes = require("../../src/models/JobTypes");
 
-// *****
-
 function convertJob(raw) {
     const title = english(oneline(raw.title));
-    const company = identifier(raw.company);
-
-    const description = english(multiline(raw.description));
+    const company = raw.company.id;
 
     const technologies = mapTags(raw.tags);
     const fields = guessFields({
         title: title,
         role: english(oneline(raw.role)),
         tags: raw.tags,
-        description: description,
+        description: raw.description,
     });
 
-    const publishDate = fromAgoDate(raw.ago);
+    const publishDate = new Date(raw.ago);
     const publishEndDate = fewWeeksAfter(publishDate);
     const [jobMinDuration, jobMaxDuration] = randomJobDuration();
 
-    if (!title || !description)
-        return null;
-    if (technologies.length === 0 || fields.length === 0)
-        return null;
-
-    const offer = {
+    const nijobsOffer = {
         id: raw.id,
         title: title,
         publishDate: publishDate.toISOString(),
@@ -51,11 +36,9 @@ function convertJob(raw) {
         jobMinDuration: jobMinDuration,
         jobMaxDuration: jobMaxDuration,
         jobStartDate: new Date(),
-        description: description,
         contacts: {
-            name: raw.companyName,
+            name: raw.company.name,
             address: oneline(raw.location),
-            website: `https://${company}.com`, // decent guess
             phone: randomPhoneNumber(),
         },
         isPaid: randomBoolean(0.96),
@@ -66,22 +49,28 @@ function convertJob(raw) {
         isHidden: randomBoolean(0.03),
         location: raw.location,
         company: company,
-        companyName: raw.companyName,
+        description: raw.description,
     };
 
-    return offer;
+    return nijobsOffer;
 }
 
 function convertCompany(raw) {
-    return {
+    const website = raw.website || `https://${domainname(raw.id)}.com`;
+
+    const nijobsCompany = {
         id: raw.id,
         name: raw.name,
+        tagline: raw.tagline,
         contacts: {
-            address: raw.address,
-            website: raw.website,
+            name: raw.name,
             phone: randomPhoneNumber(),
+            website: website,
         },
+        bio: raw.description,
     };
+
+    return nijobsCompany;
 }
 
-module.exports = { convertJob, convertCompany };
+module.exports = Object.freeze({ convertJob, convertCompany });

@@ -2,18 +2,21 @@
 require("dotenv-flow").config();
 const qs = require("querystring");
 
+const { parsePages } = require("./utils");
+
 const env = process.env;
 
 const config = {
-    SCRAP_QUERY_PARAMS: qs.parse(env.SCRAP_QUERY_PARAMS) || "",
-    SCRAP_QUERY_PARAMS_DETAILS: qs.parse(env.SCRAP_QUERY_PARAMS_DETAILS) || "",
-    SCRAP_PAGES: env.SCRAP_PAGES || "40",
+    QUERY_JOB_LISTING: qs.parse(env.QUERY_JOB_LISTING) || "",
+    QUERY_COMPANY_LISTING: qs.parse(env.QUERY_COMPANY_LISTING) || "",
+    QUERY_JOB: qs.parse(env.QUERY_JOB) || "",
+    QUERY_COMPANY: qs.parse(env.QUERY_COMPANY) || "",
+    SCRAP_PAGES_JOBS: parsePages(env.SCRAP_PAGES_JOBS || ""),
+    SCRAP_PAGES_COMPANIES: parsePages(env.SCRAP_PAGES_COMPANIES || ""),
     SCRAP_TIMEOUT: +env.SCRAP_TIMEOUT || 20000,
     SCRAP_TIMEOUT_RETRIES: +env.SCRAP_TIMEOUT_RETRIES || 3,
-    SCRAP_CONCURRENT_LISTING: +env.SCRAP_CONCURRENT_LISTING || 25,
-    SCRAP_CONCURRENT_DETAILS: +env.SCRAP_CONCURRENT_DETAILS || 100,
+    SCRAP_CONCURRENT: +env.SCRAP_CONCURRENT || 100,
     WRITE_YAML_ALSO: +env.WRITE_YAML_ALSO || false,
-    AUTO_CMS: (env.AUTO_CMS === undefined) ? true : env.AUTO_CMS,
 };
 
-module.exports = config;
+module.exports = Object.freeze(config);

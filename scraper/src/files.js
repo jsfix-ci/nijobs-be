@@ -4,54 +4,68 @@ const mkdirp = require("mkdirp");
 const glob = require("glob");
 const YAML = require("yaml");
 
+const { error } = require("./progress");
 const { WRITE_YAML_ALSO } = require("./config");
 
-function extensionJSON(file) {
-    if (/\.yaml/i.test(file)) return file.replace(/\.yaml$/i, ".json");
-    if (/\.json$/i.test(file)) return file;
-    return `${file}.json`;
+// *** read and write with extension checking and format conversion
+
+function extension(file, ext) {
+    if (/\.[a-z0-9]+$/i.test(file))
+        return file.replace(/\.[a-z0-9]+$/i, ext);
+    return `${file}${ext}`;
 }
 
-function extensionYAML(file) {
-    if (/\.json$/i.test(file)) return file.replace(/\.json$/i, ".yaml");
-    if (/\.yaml$/i.test(file)) return file;
-    return `${file}.yaml`;
+function makeFolderFor(file) {
+    const folder = file.substring(0, file.lastIndexOf("/"));
+    if (!folder || folder.length === 0) return;
+    mkdirp.sync(folder);
 }
 
 function writeJSON(file, data) {
-    const jsonFile = extensionJSON(file);
+    const jsonFile = extension(file, ".json");
     const json = JSON.stringify(data);
     makeFolderFor(jsonFile);
     fs.writeFileSync(jsonFile, json);
 }
 
 function readJSON(file) {
-    const jsonFile = extensionJSON(file);
+    const jsonFile = extension(file, ".json");
     const jsonString = fs.readFileSync(jsonFile, "utf8");
     return JSON.parse(jsonString);
 }
 
 function writeYAML(file, data) {
-    const yamlFile = extensionYAML(file);
+    const yamlFile = extension(file, ".yaml");
     const yaml = YAML.stringify(data);
     makeFolderFor(yamlFile);
     fs.writeFileSync(yamlFile, yaml);
 }
 
 function readYAML(file) {
-    const yamlFile = extensionYAML(file);
+    const yamlFile = extension(file, ".yaml");
     const yamlString = fs.readFileSync(yamlFile, "utf8");
     return YAML.parse(yamlString);
+}
+
+function writeHTML(file, data) {
+    const htmlFile = extension(file, ".html");
+    makeFolderFor(htmlFile);
+    fs.writeFileSync(htmlFile, data);
+}
+
+function readHTML(file) {
+    const htmlFile = extension(file, ".html");
+    return fs.readFileSync(htmlFile, "utf8");
 }
 
 function readBlob(file) {
     if (/\.json$/i.test(file)) {
         return readJSON(file);
-    } else if (/\.yaml$/i.test(file)) {
-        return readYAML(file);
-    } else {
-        throw `'${file}' argument to readBlob() needs an extension`;
     }
+    if (/\.yaml$/i.test(file)) {
+        return readYAML(file);
+    }
+    throw `'${file}' argument to readBlob() needs a json or yaml extension`;
 }
 
 function writeJSONandYAML(file, data) {
@@ -59,6 +73,8 @@ function writeJSONandYAML(file, data) {
     if (!WRITE_YAML_ALSO) return;
     writeYAML(file, data);
 }
+
+// *** parse structured files
 
 function parseMultimapFile(file) {
     const text = fs.readFileSync(file, "utf8");
@@ -99,19 +115,7 @@ function parseMapFile(file) {
     return parsedMap;
 }
 
-function makeFolderFor(file) {
-    const folder = file.substring(0, file.lastIndexOf("/"));
-    if (!folder || folder.length === 0) return;
-    mkdirp.sync(folder);
-}
-
-function fileToYAML(inputFile, outputFile) {
-    writeYAML(outputFile, readJSON(inputFile));
-}
-
-function fileToJSON(inputFile, outputFile) {
-    writeJSON(outputFile, readYAML(inputFile));
-}
+// *** merge
 
 function mergeFiles(pattern, outputFile, key = "id") {
     const merged = {};
@@ -120,6 +124,18 @@ function mergeFiles(pattern, outputFile, key = "id") {
         merged[blob[key]] = blob;
     });
     writeJSONandYAML(outputFile, merged);
+}
+
+function removeFile(file) {
+    try {
+        fs.unlinkSync(file);
+    } catch (err) {
+        error(err);
+    }
+}
+
+function removeFiles(files) {
+    files.forEach(removeFile);
 }
 
 /** generate output like 'sort | uniq -c' */
@@ -140,19 +156,21 @@ function writeUniqString(file, map) {
     fs.writeFileSync(file, data);
 }
 
-module.exports = {
+module.exports = Object.freeze({
+    makeFolderFor,
     writeJSON,
     readJSON,
     writeYAML,
     readYAML,
+    writeHTML,
+    readHTML,
     readBlob,
     writeJSONandYAML,
-    mapToUniqString,
-    writeUniqString,
     parseMultimapFile,
     parseMapFile,
-    makeFolderFor,
-    fileToYAML,
-    fileToJSON,
     mergeFiles,
-};
+    removeFile,
+    removeFiles,
+    mapToUniqString,
+    writeUniqString,
+});

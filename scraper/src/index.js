@@ -1,76 +1,114 @@
 // Run any command
-
 const fs = require("fs");
 
-if (!fs.existsSync("hydrate/") || !fs.existsSync("scripts/stats.sh")) {
+if (!fs.existsSync("hydrate/") || !fs.existsSync("scripts/status.sh")) {
     console.error("Please execute this script in scraper/");
     process.exit(2);
 }
+process.on("unhandledRejection", (up) => {
+    throw up;
+});
 
 const shell = require("shelljs");
 
-const scrapStackOverflow = require("./scraper");
-const blobs = require("./blobs");
 const tags = require("./tags");
 const roles = require("./roles");
+const blobs = require("./blobs");
+const progress = require("./progress");
+
+const fetcher = require("./fetch");
+const visitor = require("./visit");
+const scraper = require("./scrap");
+const linker = require("./link");
+const adopter = require("./adopt");
+const converter = require("./nijobs");
 
 // Run the script
 run();
 
 async function all() {
-    blobs.cleanPagesFolder();
-    await scrapStackOverflow();
-    blobs.writeCompanies();
-    merge("scrap");
-    blobs.convertBlobs();
-    merge("nijobs");
-    tags.writeReport();
-    roles.writeReport();
-    blobs.deployMerges();
+    await fetch();
+    await visit();
+    scrap();
+    link();
+    await adopt();
+    convert();
+    accept();
 }
 
-async function scrap() {
-    blobs.cleanPagesFolder();
-    await scrapStackOverflow();
-    blobs.writeCompanies();
-    merge("scrap");
+async function fetch() {
+    blobs.cleanListings();
+    await fetcher.fetchListings();
+    status("listings");
+}
+
+async function visit() {
+    blobs.cleanHTML();
+    await visitor.visitAll();
+    status("visit");
+}
+
+function scrap() {
+    blobs.cleanRaw();
+    scraper.scrapAll();
+    merge("raw");
     tags.writeReport();
+    status("scrap");
+}
+
+function link() {
+    blobs.cleanLink();
+    linker.linkRawAll();
+    merge("link");
+    merge("orphan");
+    status("link");
+}
+
+async function adopt() {
+    await adopter.adoptAll();
+    merge("raw");
+    merge("link");
+    merge("orphan");
+    tags.writeReport();
+    status("raw");
+    status("link");
+    status("orphans");
 }
 
 function convert() {
-    blobs.convertBlobs();
+    blobs.cleanNijobs();
+    converter.convertAll();
     merge("nijobs");
     tags.writeReport();
     roles.writeReport();
+    status("nijobs");
 }
 
 function accept() {
-    blobs.deployMerges();
+    blobs.mergeNijobs();
+    blobs.cleanAccept();
+    blobs.accept();
+    progress.info(">>>>>>>");
+    status("done");
 }
 
 function merge(which = "all") {
-    if (which === "scrap" || which === "all") {
-        blobs.mergeScrapBlobs();
-        stats("scrap");
-        status("scrap");
+    if (which === "raw" || which === "all") {
+        blobs.mergeRaw();
+    }
+    if (which === "link" || which === "all") {
+        blobs.mergeLink();
+    }
+    if (which === "orphan" || which === "all") {
+        blobs.mergeOrphan();
     }
     if (which === "nijobs" || which === "all") {
-        blobs.mergeNijobsBlobs();
-        stats("nijobs");
-        status("nijobs");
+        blobs.mergeNijobs();
     }
-}
-
-function stats(which = "all") {
-    shell.exec(`./scripts/stats.sh ${which}`);
 }
 
 function status(which = "all") {
     shell.exec(`./scripts/status.sh ${which}`);
-}
-
-function clean(which = "all") {
-    shell.exec(`./scripts/clean.sh ${which}`);
 }
 
 function script(action, which) {
@@ -78,20 +116,24 @@ function script(action, which) {
         switch (action) {
             case "all":
                 return all();
-            case "scrap":
-                return scrap();
-            case "nijobs":
+            case "fetch": case "listings":
+                return fetch(which);
+            case "visit": case "html":
+                return visit(which);
+            case "scrap": case "raw":
+                return scrap(which);
+            case "link":
+                return link();
+            case "adopt": case "orphan": case "orphans":
+                return adopt();
+            case "nijobs": case "convert":
                 return convert();
-            case "accept":
+            case "accept": case "move":
                 return accept();
             case "merge":
                 return merge(which);
-            case "stats":
-                return stats(which);
             case "status":
                 return status(which);
-            case "clean":
-                return clean(which);
             default:
                 console.error(`Unknown action ${action}`);
                 return 1;

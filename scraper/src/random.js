@@ -1,5 +1,28 @@
 // Various time and random generation functions
-const agoTable = { s: 1, m: 60, h: 3600, d: 86400, w: 604800, y: 31536000000 };
+const { warn } = require("./progress");
+const agoTable = {
+    "s": 1,
+    "m": 60,
+    "h": 3600,
+    "d": 86400,
+    "w": 86400 * 7,
+    "y": 86400 * 365.25,
+    "second": 1,
+    "minutes": 60,
+    "hour": 3600,
+    "day": 86400,
+    "week": 86400 * 7,
+    "month": 86400 * 365.25 / 12,
+    "year": 86400 * 365.25,
+    "yesterday": 86400,
+};
+
+function getAgo(string) {
+    for (const key in agoTable)
+        if (string.includes(key))
+            return agoTable[key];
+    return null;
+}
 
 function randomInt(min, max) {
     const imin = Math.ceil(min);
@@ -20,19 +43,31 @@ function randomPhoneNumber() {
 }
 
 function randomOf(array) {
-    return array[randomInt(0, array.length - 1)];
+    return array[randomInt(0, array.length)];
+}
+
+function randomAgoDate() {
+    const time =  1000 * 86400 * randomInt(5, 45); // ~25 days
+    return new Date(Date.now() - time);
 }
 
 function fromAgoDate(agoText) {
     // Match things like  "7d ago"  "< 1h ago"  "1w ago"
-    const match = /\b(\d+)([a-zA-Z]) +ago/.exec(agoText);
-    let time;
-    if (match) {
-        time = +match[1] * 1000 * (agoTable[match[2].toLowerCase()] || 86400);
-    } else {
-        time =  1000 * 86400 * randomInt(5, 45); // ~25 days
+    if (/\byesterday\b/.test(agoText))
+        return new Date(Date.now() - (1000 * agoTable.yesterday));
+    const match = /(\d+)\s*([a-zA-Z]+)\s+ago/iu.exec(agoText);
+    if (!match) {
+        warn(`Failed to parse ago date: '${agoText}'`);
+        return randomAgoDate();
     }
-    return new Date(Date.now() - time);
+    const stamp = getAgo(match[2].toLowerCase().trim());
+    if (stamp) {
+        const time = +match[1] * 1000 * (stamp || 86400);
+        return new Date(Date.now() - time);
+    } else {
+        warn(`Failed to parse ago date: '${agoText}'`);
+        return randomAgoDate();
+    }
 }
 
 function fewWeeksAfter(start = Date.now()) {
@@ -51,7 +86,7 @@ function randomJobDuration() {
     return [min, max];
 }
 
-module.exports = {
+module.exports = Object.freeze({
     randomInt,
     randomBoolean,
     randomVacancies,
@@ -61,4 +96,4 @@ module.exports = {
     fewWeeksAfter,
     fewMonthsAfter,
     randomJobDuration,
-};
+});
