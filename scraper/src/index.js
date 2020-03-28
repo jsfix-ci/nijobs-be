@@ -85,7 +85,7 @@ function convert() {
 }
 
 function accept() {
-    blobs.mergeNijobs();
+    merge("nijobs");
     blobs.cleanAccept();
     blobs.accept();
     progress.info(">>>>>>>");

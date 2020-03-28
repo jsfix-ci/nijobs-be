@@ -21,6 +21,14 @@ function parsePages(pageString) {
         }).reduce((acc, value) => acc.concat(value), []);
 }
 
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+    return array;
+}
+
 function keyBy(arr, key = "id", overwrite = "throw") {
     const obj = {};
     arr.forEach((elem) => {
@@ -55,6 +63,7 @@ function removeNullsUniq(el, i, arr) {
 
 module.exports = Object.freeze({
     parsePages,
+    shuffleArray,
     keyBy,
     sortById,
     removeNulls,

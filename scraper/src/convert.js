@@ -1,19 +1,25 @@
 // Convert StackOverflow raw job/company to nijobs offer/company
 const { mapTags } = require("./tags");
 const { guessFields } = require("./roles");
-const { domainname, oneline, english } = require("./strings");
 const {
     randomBoolean,
     randomVacancies,
     randomPhoneNumber,
     randomOf,
     fewWeeksAfter,
+    fewMonthsAfter,
     randomJobDuration,
 } = require("./random");
-const JobTypes = require("../../src/models/JobTypes");
+const {
+    domainname,
+    oneline,
+    english,
+    tidytitle,
+} = require("./strings");
+const specs = require("./specs");
 
 function convertJob(raw) {
-    const title = english(oneline(raw.title));
+    const title = english(tidytitle(raw.title));
     const company = raw.company.id;
 
     const technologies = mapTags(raw.tags);
@@ -35,7 +41,7 @@ function convertJob(raw) {
         publishEndDate: publishEndDate.toISOString(),
         jobMinDuration: jobMinDuration,
         jobMaxDuration: jobMaxDuration,
-        jobStartDate: new Date(),
+        jobStartDate: fewMonthsAfter(),
         contacts: {
             name: raw.company.name,
             address: oneline(raw.location),
@@ -43,13 +49,13 @@ function convertJob(raw) {
         },
         isPaid: randomBoolean(0.96),
         vacancies: randomVacancies(),
-        jobType: randomOf(JobTypes),
+        jobType: randomOf(specs.JobTypes),
         fields: fields,
         technologies: technologies,
         isHidden: randomBoolean(0.03),
         location: raw.location,
-        company: company,
         description: raw.description,
+        _company: company,
     };
 
     return nijobsOffer;

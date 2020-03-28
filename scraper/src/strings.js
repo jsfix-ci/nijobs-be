@@ -29,7 +29,7 @@ function domainname(string, sep = "") {
 // remove garbage from a one line string
 function simpleline(string) {
     if (notok(string)) return "";
-    return oneline(string).toLowerCase().replace(/[^a-z0-9\s_/-]/g, "");
+    return oneline(string).toLowerCase().replace(/[^a-z0-9\s_\-/]/g, "");
 }
 
 // remove whitespace noise from oneline html string
@@ -44,6 +44,42 @@ function multiline(string) {
     return string.trim().split("\n").map(oneline).join("\n")
         .replace(/\n\s+\n/ug, "\n\n")
         .replace(/[ \t]+/ug, " ");
+}
+
+// remove trailing garbage from titles and also (m/w/d)
+function tidytitle(string) {
+    if (notok(string)) return "";
+    return oneline(string)
+        .replace(/(?:\s*(?:[!.,;:\-?/]|\([^)]+\))\s*)+$/ug, "")
+        .replace(/\s*\((?:[mfwdvxi][/|])*[mfwdvxi][/|]?\)\s*/uig, " ")
+        .trim();
+}
+
+// clever truncation of strings
+function truncator(string, len, splitters) {
+    if (notok(string)) return "";
+    if (string.length <= len) return string;
+    let pargs;
+    for (const splitter of splitters) {
+        pargs = string.split(splitter);
+        if (pargs[0].length <= len) break;
+    }
+    if (pargs[0].length > len) return string.substr(0, len); // must be german
+    let prefix = pargs[0], i = 1;
+    while (i < pargs.length && prefix.length + pargs[i].length < len)
+        prefix += pargs[i++];
+    return prefix;
+}
+
+function onelineTruncated(string, len) {
+    return oneline(truncator(string, len,
+        [/(\s*[.!?]\s*)+/ug, /([.!?\-/]?)/ug]));
+}
+
+// truncate a string only to the first N paragraphs to fit length limits
+function multilineTruncated(string, len) {
+    return multiline(truncator(string, len,
+        [/( *\n *)/ug, /( *[\n.!?]+ *)/ug, /(\s+)/ug]));
 }
 
 // okay...
@@ -67,5 +103,8 @@ module.exports = Object.freeze({
     simpleline,
     oneline,
     multiline,
+    tidytitle,
+    onelineTruncated,
+    multilineTruncated,
     english,
 });

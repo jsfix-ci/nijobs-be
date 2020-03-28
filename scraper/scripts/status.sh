@@ -68,7 +68,7 @@ fi
 
 if print_orphans && test -d "out/orphans/"; then
 	echo "------- orphans"
-	count_yaml_files "out/orphans/" "orphaned offer files"
+	count_yaml_files "out/orphans/" "orphan offers"
 fi
 
 if print_nijobs && test -d "out/nijobs/"; then

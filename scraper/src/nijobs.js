@@ -13,6 +13,7 @@ const {
     convertJob,
     convertCompany,
 } = require("./convert");
+const { tweak } = require("./tweaks");
 
 function convertOffers(ids) {
     if (ids.length === 0) return [];
@@ -38,28 +39,19 @@ function convertCompanies(ids) {
     return keyBy(nijobsCompanies, "id");
 }
 
-function convert() {
-    convertOffers();
-    convertCompanies();
-}
-
-function convertAllOffers() {
-    const ids = getLinkOfferIds();
-    const offers = convertOffers(ids);
-    Object.values(offers).forEach(writeNijobsOffer);
-    return offers;
-}
-
-function convertAllCompanies() {
-    const ids = getLinkCompanyIds();
-    const companies = convertCompanies(ids);
-    Object.values(companies).forEach(writeNijobsCompany);
-    return companies;
+function convert(offerIds, companyIds) {
+    const offers = convertOffers(offerIds);
+    const companies = convertCompanies(companyIds);
+    return tweak(offers, companies);
 }
 
 function convertAll() {
-    convertAllOffers();
-    convertAllCompanies();
+    const offerIds = getLinkOfferIds();
+    const companyIds = getLinkCompanyIds();
+    const { offers, companies } = convert(offerIds, companyIds);
+    Object.values(offers).forEach(writeNijobsOffer);
+    Object.values(companies).forEach(writeNijobsCompany);
+    return { offers, companies };
 }
 
 module.exports = Object.freeze({ convert, convertAll });
