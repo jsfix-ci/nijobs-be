@@ -15,7 +15,7 @@ print_raw() { any_of "all" "raw" "scrap" ; }
 print_link() { any_of "all" "link" "adopt" ; }
 print_orphans() { any_of "all" "orphan" "orphans" ; }
 print_nijobs() { any_of "all" "nijobs" "convert" ; }
-print_data() { any_of "all" "data" "accept" "done" ; }
+print_data() { any_of "all" "data" "accept" "mongo" "done" ; }
 
 count_files() {
 	local count
@@ -56,14 +56,14 @@ fi
 
 if print_raw && test -d "out/raw/"; then
 	echo "------- scrap"
-	count_yaml_files "out/raw/offers/"            "raw offers"
-	count_yaml_files "out/raw/companies/"        "raw companies"
+	count_yaml_files "out/raw/offers/"    "raw offers"
+	count_yaml_files "out/raw/companies/" "raw companies"
 fi
 
 if print_link && test -d "out/link/"; then
 	echo "------- link"
-	count_yaml_files "out/link/offers/"            "linked offers"
-	count_yaml_files "out/link/companies/"        "linked companies"
+	count_yaml_files "out/link/offers/"    "linked offers"
+	count_yaml_files "out/link/companies/" "linked companies"
 fi
 
 if print_orphans && test -d "out/orphans/"; then

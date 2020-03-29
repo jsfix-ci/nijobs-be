@@ -6,32 +6,25 @@ const {
     parseMapFile,
 } = require("./files");
 
-const GUESS_ROLES_MAPPING_FILE = "hydrate/roles";
+const FIELDS_MAP_FILE = "hydrate/fields";
+const ROLES_MAP_FILE = "hydrate/roles";
 
 // SO <role> -> nijobs FieldType <name>
-const rolesMap = {
-    "BackendDeveloper": "BACKEND_DEVELOPER",
-    "DatabaseAdministrator": "DATABASE_ADMIN",
-    "Designer": "DESIGNER",
-    "DesktopDeveloper": "DESKTOP_DEVELOPER",
-    "DevOpsDeveloper": "DEVOPS",
-    "EmbeddedDeveloper": "EMBEDDED_DEVELOPER",
-    "FrontendDeveloper": "FRONTEND_DEVELOPER",
-    "FullStackDeveloper": "FULL_STACK_DEVELOPER",
-    "GameDeveloper": "GAME_DEVELOPER",
-    "MobileDeveloper": "MOBILE_DEVELOPER",
-    "QATestDeveloper": "QUALITY_ASSURANCE",
-    "SystemAdministrator": "SYSADMIN",
-    "ProductManager": "OTHER",
-    "DataScientist": "OTHER",
-};
 
-const guessMap = loadRoleGuesses();
+const guessMap = loadFields();
+const rolesMap = loadRoles();
 
 const unknownTracker = new Map();
 
-function loadRoleGuesses() {
-    return parseMapFile(GUESS_ROLES_MAPPING_FILE);
+function loadFields() {
+    const map = parseMapFile(FIELDS_MAP_FILE, /\s*[,;]+\s*/);
+    for (const field in map)
+        map[field].map((keyword) => new RegExp(keyword, "uig"));
+    return map;
+}
+
+function loadRoles() {
+    return parseMapFile(ROLES_MAP_FILE, /\s*[,;]+\s*/);
 }
 
 function writeReport() {
@@ -65,24 +58,33 @@ function guessFields({
     description,
 }) {
     const norm = {
-        title: simpleline(title),
-        role: simpleline(role),
-        tags: tags.map(simpleline),
-        description: simpleline(description),
+        title: [simpleline(title), 15],
+        role: [simpleline(role), 20],
+        tags: [tags.map(simpleline).join(" "), 8],
+        description: [simpleline(description), 2],
     };
 
+    const scores = {};
+
     // _very_ simple, dumb guess for now, which returns only one field
-    for (const text of Object.values(norm)) {
+    for (const [text, weight] of Object.values(norm)) {
         if (!text) continue;
         for (const field in guessMap) {
             const keywords = guessMap[field];
-            for (const keyword in keywords)
-                if (text.includes(keyword))
-                    return [field];
+            for (const keyword of keywords) {
+                const matches = text.match(keyword);
+                if (matches) {
+                    if (!scores[field]) scores[field] = 0;
+                    scores[field] += matches.length * weight;
+                }
+            }
         }
     }
 
-    return ["OTHER"];
+    return Object.entries(scores).sort(([f1, s1], [f2, s2]) => {
+        if (s1 !== s2) return s2 - s1;
+        return f1 < f2 ? -1 : 1;
+    }).map(([f]) => f);
 }
 
 module.exports = Object.freeze({ writeReport, mapRoles, guessFields });

@@ -165,7 +165,7 @@ function parseCompanyHTML(html, id) {
     // * description
     const mainDescription = english(multiline(descrSec.text()));
     const restDescription = english(multiline($("h2 + div ~", tagsSec).text()));
-    const description = `${mainDescription}\n\n${restDescription}`;
+    const description = multiline(`${mainDescription}\n\n${restDescription}`);
 
     // * benefits
     const listNodes = $("ol > li div:has(> svg) + div", benefitsSec);

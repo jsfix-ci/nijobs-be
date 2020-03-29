@@ -11,9 +11,9 @@ const {
     readHTML,
     writeYAML,
     readYAML,
+    writeJSON,
     mergeFiles,
     removeFile,
-    removeFiles,
 } = require("./files");
 
 function isFilename(file) {
@@ -259,66 +259,48 @@ function mergeNijobs() {
 
 // *** accept
 
-function acceptOffers() {
-    const offersFile = "out/offers_nijobs.json";
-    if (!fs.existsSync(offersFile)) {
-        error("Offers file offers/all_nijobs.json doesn't exist");
-        return;
-    }
-    mkdirp.sync("data");
-    fs.copyFileSync(offersFile, "data/offers.json");
-}
-
-function acceptCompanies() {
-    const companiesFile = "out/companies_nijobs.json";
-    if (!fs.existsSync(companiesFile)) {
-        error("Companies file companies/all_nijobs.json doesn't exist");
-        return;
-    }
-    mkdirp.sync("data");
-    fs.copyFileSync(companiesFile, "data/companies.json");
-}
-
-function accept() {
-    acceptOffers();
-    acceptCompanies();
+function acceptData(offers, companies) {
+    writeJSON("data/offers.json", offers);
+    writeJSON("data/companies.json", companies);
 }
 
 // *** clean
 
+const cleanopt = { glob: false };
+
 function cleanListings() {
-    rimraf.sync("out/listings/");
+    rimraf.sync("out/listings", cleanopt);
 }
 
 function cleanHTML() {
-    rimraf.sync("out/html/");
+    rimraf.sync("out/html", cleanopt);
 }
 
 function cleanRaw() {
-    rimraf.sync("out/raw/");
-    rimraf.sync("out/offers_raw.json");
-    rimraf.sync("out/companies_raw.json");
+    rimraf.sync("out/raw", cleanopt);
+    rimraf.sync("out/offers_raw.json", cleanopt);
+    rimraf.sync("out/companies_raw.json", cleanopt);
 }
 
 function cleanLink() {
-    rimraf.sync("out/link/");
-    rimraf.sync("out/offers_link.json");
-    rimraf.sync("out/companies_link.json");
+    rimraf.sync("out/link", cleanopt);
+    rimraf.sync("out/offers_link.json", cleanopt);
+    rimraf.sync("out/companies_link.json", cleanopt);
 }
 
 function cleanOrphan() {
-    rimraf.sync("out/orphan/");
-    rimraf.sync("out/offers_orphan.json");
+    rimraf.sync("out/orphan", cleanopt);
+    rimraf.sync("out/offers_orphan.json", cleanopt);
 }
 
 function cleanNijobs() {
-    rimraf.sync("out/nijobs/");
-    rimraf.sync("out/offers_nijobs.json");
-    rimraf.sync("out/companies_nijobs.json");
+    rimraf.sync("out/nijobs", cleanopt);
+    rimraf.sync("out/offers_nijobs.json", cleanopt);
+    rimraf.sync("out/companies_nijobs.json", cleanopt);
 }
 
 function cleanAccept() {
-    rimraf.sync("data/");
+    rimraf.sync("data/*.json");
 }
 
 module.exports = Object.freeze({
@@ -378,9 +360,7 @@ module.exports = Object.freeze({
     mergeNijobsCompanies,
     mergeNijobs,
 
-    acceptOffers,
-    acceptCompanies,
-    accept,
+    acceptData,
 
     cleanListings,
     cleanHTML,

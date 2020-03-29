@@ -21,8 +21,9 @@ SRC_URL="https://raw.githubusercontent.com/marmelo/tech-companies-in-portugal/${
 INPUT_FILE=$(mktemp)
 curl -Ss "$SRC_URL" >"$INPUT_FILE"
 
-YAML_FILE='bios.yaml'
-JSON_FILE='bios.json'
+YAML_FILE='hydrate/bios.yaml'
+JSON_FILE='hydrate/bios.json'
+BIOS_FILE='hydrate/bios'
 
 TMPFILE=$(mktemp)
 
@@ -53,17 +54,21 @@ mapfile -t BIO < <(
 
 rm -f "$TMPFILE" "$INPUT_FILE"
 
-printf '%s\ncompanies:\n' '---' >"$YAML_FILE"
+printf '%s' '---\n' >"$YAML_FILE"
 
 for i in "${!NAME[@]}"; do
 	printf \
-"  %s:
-    name: %s
-    contacts:
-      website: %s
-    bio: %s
+"%s:
+  name: %s
+  contacts:
+    website: %s
+  bio: %s
 " "${KEY[$i]}" "${NAME[$i]}" "${WEBSITE[$i]}" "${BIO[$i]}"
 done >>"$YAML_FILE"
+
+for i in "${!BIO[@]}"; do
+	printf "%s\n" "${BIO[$i]}"
+done | sed -r -e '/^\s*$/d' >>"$BIOS_FILE"
 
 echo "yaml file written to $YAML_FILE"
 

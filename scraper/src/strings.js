@@ -89,10 +89,10 @@ function english(text) {
         .replace(/Sr\.|Sen\./ug, "Senior")
         .replace(/Jr\.|Jun\./ug, "Junior")
         .replace(/Grad\./ug, "Graduate")
-        .replace(/front-end/ug, "frontend")
-        .replace(/back-end/ug, "backend")
-        .replace(/Front-end/ug, "Frontend")
-        .replace(/Back-end/ug, "Backend");
+        .replace(/front[-\s]end/ug, "frontend")
+        .replace(/back[-\s]end/ug, "backend")
+        .replace(/Front[-\s]end/ug, "Frontend")
+        .replace(/Back[-\s]end/ug, "Backend");
 }
 
 module.exports = Object.freeze({

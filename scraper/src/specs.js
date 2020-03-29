@@ -9,7 +9,7 @@ const TimeConstants = require("../../src/models/TimeConstants");
 // in case we need to add more techs or fields to offers to convert them
 // there should be enough defaults to pick from to meet the minimum requirement
 const defaultTechnologies = ["AWS", "Docker", "Linux", "Windows", "macOS"];
-const defaultFields = ["DESIGNER", "QUALITY_ASSURANCE", "DEVOPS"];
+const defaultFields = ["OTHER", "QUALITY ASSURANCE", "DEVOPS"];
 
 // expand everything so that we can keep changes upstream contained
 const offer_description_max_length = OfferConstants.description.max_length;

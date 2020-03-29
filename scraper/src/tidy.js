@@ -1,27 +1,25 @@
 const { info } = require("./progress");
 
 function tidyRawJob(job) {
-    if (!job.id)
-        throw "Tidying job with no id?";
-    if (!job.company || !job.company.id || !job.company.sopath)
-        throw "Tidying job with no company?";
+    if (!job.id || !job.company || !job.company.id || !job.company.sopath)
+        throw "Tidying job with no id/company?";
 
     const id = job.id;
 
     if (!job.title || typeof job.title !== "string") {
-        info(`! /jobs/${id}  No title`);
+        info(`! /jobs/${id.padEnd(6)}  No title`);
         return null;
     }
     if (!job.tags || job.tags.length === 0) {
-        info(`! /jobs/${id}  No tags`);
+        info(`! /jobs/${id.padEnd(6)}  No tags`);
         return null;
     }
     if (!job.description || typeof job.description !== "string") {
-        info(`! /jobs/${id}  No description`);
+        info(`! /jobs/${id.padEnd(6)}  No description`);
         return null;
     }
     if (!job.ago || typeof job.title !== "string") {
-        info(`! /jobs/${id}  No ago date`);
+        info(`! /jobs/${id.padEnd(6)}  No ago date`);
         return null;
     }
 
@@ -36,15 +34,15 @@ function tidyRawCompany(company) {
     const id = company.id;
 
     if (!company.name || !(typeof company.name === "string")) {
-        info(`! /jobs/companies/${id}  No name`);
+        info(`! /jobs/companies/${id.padEnd(40)}  No name`);
         return null;
     }
     if (!company.tags || company.tags.length === 0) {
-        info(`! /jobs/companies/${id}  No tags`);
+        info(`! /jobs/companies/${id.padEnd(40)}  No tags`);
         return null;
     }
     if (!company.description || !(typeof company.description === "string")) {
-        info(`! /jobs/companies/${id}  No description`);
+        info(`! /jobs/companies/${id.padEnd(40)}  No description`);
         return null;
     }
 

@@ -4,6 +4,7 @@ const mkdirp = require("mkdirp");
 const glob = require("glob");
 const YAML = require("yaml");
 
+const { removeNullsUniq } = require("./utils");
 const { error } = require("./progress");
 const { WRITE_YAML_ALSO } = require("./config");
 
@@ -76,7 +77,7 @@ function writeJSONandYAML(file, data) {
 
 // *** parse structured files
 
-function parseMultimapFile(file) {
+function parseMultimapFile(file, splitter = /\s+/ug) {
     const text = fs.readFileSync(file, "utf8");
 
     const parsedMap = {};
@@ -89,13 +90,14 @@ function parseMultimapFile(file) {
         .filter((line) => !/^\s*#/.test(line) && line.length > 0)
         .map((line) => line.split(/:?=+/g).slice(0, 2))
         .filter((columns) => columns.length >= 2)
-        .map(([name, values]) => [name.trim(), values.trim().split(/\s+/g)])
+        .map(([name, values]) => [name.trim(),
+            values.trim().split(splitter).sort().filter(removeNullsUniq)])
         .forEach(([name, values]) => add(name, values));
 
     return parsedMap;
 }
 
-function parseMapFile(file) {
+function parseMapFile(file, splitter = /\s+/ug) {
     const text = fs.readFileSync(file, "utf8");
 
     const parsedMap = {};
@@ -109,7 +111,7 @@ function parseMapFile(file) {
         .map((line) => line.split(/:?=+/g).slice(0, 2))
         .filter((columns) => columns.length >= 2)
         .map(([name, values]) => [name.trim(),
-            values.trim().split(/\s+/g).map((value) => value.replace("_", " "))])
+            values.trim().split(splitter).sort().filter(removeNullsUniq)])
         .forEach(([name, values]) => add(name, values));
 
     return parsedMap;

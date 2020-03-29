@@ -22,6 +22,7 @@ const scraper = require("./scrap");
 const linker = require("./link");
 const adopter = require("./adopt");
 const converter = require("./nijobs");
+const accepter = require("./mongo");
 
 // Run the script
 run();
@@ -85,9 +86,8 @@ function convert() {
 }
 
 function accept() {
-    merge("nijobs");
     blobs.cleanAccept();
-    blobs.accept();
+    accepter.acceptAll();
     progress.info(">>>>>>>");
     status("done");
 }
@@ -124,11 +124,11 @@ function script(action, which) {
                 return scrap(which);
             case "link":
                 return link();
-            case "adopt": case "orphan": case "orphans":
+            case "adopt":
                 return adopt();
             case "nijobs": case "convert":
                 return convert();
-            case "accept": case "move":
+            case "data": case "accept": case "move": case "mongo":
                 return accept();
             case "merge":
                 return merge(which);

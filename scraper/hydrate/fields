@@ -1,0 +1,19 @@
+# Nijobs fields to keywords
+#   Parsed by roles.js
+# Format: "$field = $keyword,..."
+
+BACKEND                  =  backend
+DATABASE ADMIN           =  database admin
+DESIGNER                 =  designer
+DESKTOP                  =  desktop, windows dev, linux dev, macos dev
+DESKTOP                  =  windows eng, linux eng, macos eng
+DEVOPS                   =  devops, kubernetes, terraform, aws
+EMBEDDED                 =  embedded
+FRONTEND                 =  frontend
+FULL STACK               =  full stack, fullstack
+GAMING                   =  game dev, gaming
+MOBILE                   =  mobile dev, ios dev, android dev
+MOBILE                   =  ios eng, android eng
+QUALITY ASSURANCE        =  qa, q&a, quality assurance, testing eng
+SYSADMIN                 =  sysadmin, system admin
+OTHER                    =

@@ -1,6 +1,7 @@
 // Convert StackOverflow raw job/company to nijobs offer/company
 const { mapTags } = require("./tags");
 const { guessFields } = require("./roles");
+const { getRandomBio } = require("./bios");
 const {
     randomBoolean,
     randomVacancies,
@@ -13,6 +14,7 @@ const {
 const {
     domainname,
     oneline,
+    multiline,
     english,
     tidytitle,
 } = require("./strings");
@@ -67,13 +69,13 @@ function convertCompany(raw) {
     const nijobsCompany = {
         id: raw.id,
         name: raw.name,
-        tagline: raw.tagline,
+        tagline: oneline(raw.tagline),
         contacts: {
             name: raw.name,
             phone: randomPhoneNumber(),
             website: website,
         },
-        bio: raw.description,
+        bio: multiline(raw.description) || getRandomBio(),
     };
 
     return nijobsCompany;

@@ -62,7 +62,7 @@ function tweakOffer(offer, otweaks, sorters) {
     }
     if (offer.technologies.length > specs.max_technologies) {
         ++otweaks.max_technologies;
-        offer.tags.sort(sorters.technologies).splice(specs.max_technologies);
+        offer.technologies.sort(sorters.technologies).splice(specs.max_technologies);
     }
     if (offer.fields.length < specs.min_fields) {
         ++otweaks.min_fields;
@@ -74,7 +74,7 @@ function tweakOffer(offer, otweaks, sorters) {
     }
     if (offer.fields.length > specs.max_fields) {
         ++otweaks.max_fields;
-        offer.tags.sort(sorters.fields).splice(specs.max_fields);
+        offer.fields.sort(sorters.fields).splice(specs.max_fields);
     }
 }
 
