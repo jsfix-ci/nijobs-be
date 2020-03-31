@@ -13,12 +13,20 @@ const {
 } = require("./random");
 const {
     domainname,
+    cleanupurl,
     oneline,
     multiline,
     english,
     tidytitle,
 } = require("./strings");
 const specs = require("./specs");
+
+function getCompanyWebsiteLink(soURL, id) {
+    if (!soURL) return `https://${domainname(id)}.com`;
+    const redirectUrl = new URL(soURL).searchParams.get("redirectUrl");
+    if (redirectUrl) return cleanupurl(redirectUrl);
+    return `https://${domainname(id)}.com`;
+}
 
 function convertJob(raw) {
     const title = english(tidytitle(raw.title));
@@ -64,7 +72,7 @@ function convertJob(raw) {
 }
 
 function convertCompany(raw) {
-    const website = raw.website || `https://${domainname(raw.id)}.com`;
+    const website = getCompanyWebsiteLink(raw.website, raw.id);
 
     const nijobsCompany = {
         id: raw.id,

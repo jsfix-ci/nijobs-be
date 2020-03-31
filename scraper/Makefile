@@ -1,5 +1,5 @@
 .PHONY: all fetch listings visit html scrap raw link adopt
-.PHONY: nijobs convert data accept move mongo
+.PHONY: nijobs convert data accept move mongo convert+ nijobs+
 
 all:
 	@node src/index.js all
@@ -16,6 +16,10 @@ adopt:
 nijobs convert:
 	@node src/index.js nijobs
 data accept move mongo:
+	@node src/index.js accept
+
+convert+ nijobs+:
+	@node src/index.js nijobs
 	@node src/index.js accept
 
 clean:

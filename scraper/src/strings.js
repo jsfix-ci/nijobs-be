@@ -26,6 +26,13 @@ function domainname(string, sep = "") {
     return string.trim().toLowerCase().replace(/[^a-z0-9]+/ug, sep);
 }
 
+// use https and remove trailing slash. Also, unbork some stackoverflow links
+function cleanupurl(string) {
+    if (notok(string)) return "";
+    return string.trim().replace(/^http:/, "https:").replace(/\/$/u, "")
+        .split(/\s+/u)[0];
+}
+
 // remove garbage from a one line string
 function simpleline(string) {
     if (notok(string)) return "";
@@ -100,6 +107,7 @@ module.exports = Object.freeze({
     rmquery,
     endofpath,
     domainname,
+    cleanupurl,
     simpleline,
     oneline,
     multiline,
