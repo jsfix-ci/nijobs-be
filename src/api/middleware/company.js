@@ -18,10 +18,13 @@ const isCompanyRep = (req, res, next) => {
     return next();
 };
 
-const verifyMaxConcurrentOffers = async (req, res, next) => {
-    const limitNotReached = await concurrentOffersNotExceeded(Offer)(req.body.owner, req.body.publishDate, req.body.publishEndDate);
-
-    if (!limitNotReached) {
+const verifyMaxConcurrentOffers = (owner, publishDate, publishEndDate) => async (req, res, next) => {
+    const limitNotReached = await concurrentOffersNotExceeded(Offer)(
+        owner,
+        publishDate || req.body.publishDate,
+        publishEndDate || req.body.publishEndDate
+    );
+    if (!req.body.isHidden && !limitNotReached) {
         return res.status(HTTPStatus.CONFLICT).json(
             buildErrorResponse(
                 ErrorTypes.VALIDATION_ERROR,

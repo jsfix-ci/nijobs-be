@@ -62,7 +62,7 @@ module.exports = (app) => {
     router.post("/new",
         authMiddleware.isCompanyOrAdminOrGod,
         validators.create,
-        companyMiddleware.verifyMaxConcurrentOffers,
+        (req, res, next) => companyMiddleware.verifyMaxConcurrentOffers(req.user?.company || req.body.owner)(req, res, next),
         validators.offersDateSanitizers,
         async (req, res, next) => {
             try {
@@ -85,6 +85,7 @@ module.exports = (app) => {
         authMiddleware.isCompanyOrAdminOrGod,
         validators.isExistingOffer,
         validators.isEditable,
+        validators.canBeManaged,
         validators.edit,
         (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
         validators.offersDateSanitizers,
@@ -147,8 +148,9 @@ module.exports = (app) => {
         validators.validOfferId,
         validators.isExistingOffer,
         (req, res, next) => authMiddleware.isOfferOwner(req.params.offerId)(req, res, next),
-        validators.canBeManaged,
         validators.canEnable,
+        validators.canBeManaged,
+        (req, res, next) => companyMiddleware.verifyMaxConcurrentOffers(req.user.company || req.owner)(req, res, next),
         async (req, res, next) => {
             try {
                 const offer = await (new OfferService()).enable(req.params.offerId);

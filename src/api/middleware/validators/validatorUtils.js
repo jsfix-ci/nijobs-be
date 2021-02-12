@@ -62,7 +62,8 @@ const isObjectId = (id) => {
 const concurrentOffersNotExceeded = (OfferModel) => async (owner, publishDate, publishEndDate) => {
     // We need to pass the offer model in case we're inside an Offer instance
     const concurrentOffers = await (new CompanyService())
-        .getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel);
+        .getOffersInTimePeriod(owner, publishDate, publishEndDate, OfferModel)
+        .withoutHidden();
 
     return concurrentOffers.length < CompanyConstants.offers.max_concurrent;
 };
