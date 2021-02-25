@@ -1647,6 +1647,52 @@ describe("Offer endpoint tests", () => {
 
         });
 
+        describe("testing concurrent offers", () => {
+            const test_dates = {
+                "publishDate": (new Date(Date.now() + (10 * DAY_TO_MS))).toISOString(),
+                "publishEndDate": (new Date(Date.now() + (20 * DAY_TO_MS))).toISOString()
+            };
+            const test_offers = Array(CompanyConstants.offers.max_concurrent)
+                .fill(generateTestOffer(test_dates));
+
+            let test_offer;
+            beforeAll(async () => {
+                await test_agent.post("/auth/login")
+                    .send(test_user_company)
+                    .expect(HTTPStatus.OK);
+
+                await Offer.deleteMany({});
+
+                test_offers.forEach((offer) => {
+                    offer.owner = test_company._id;
+                    offer.ownerName = test_company.name;
+                });
+
+                test_offer = await Offer.create({
+                    ...generateTestOffer(),
+                    owner: test_company._id,
+                    ownerName: test_company.name
+                });
+
+                await Offer.create(test_offers);
+            });
+
+            test("should fail if offer is edited into dates where max concurrent offers was reached", async () => {
+                const res = await test_agent
+                    .post(`/offers/edit/${test_offer._id}`)
+                    .send({
+                        "publishDate": (new Date(Date.now() + (10 * DAY_TO_MS))).toISOString(),
+                        "publishEndDate": (new Date(Date.now() + (20 * DAY_TO_MS))).toISOString()
+                    })
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors[0]).toHaveProperty("param", "publishEndDate");
+                expect(res.body.errors[0])
+                    .toHaveProperty("msg", ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+            });
+        });
+
     });
 
     describe("POST /offers/:offerId/disable", () => {
