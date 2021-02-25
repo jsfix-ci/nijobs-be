@@ -221,7 +221,9 @@ const publishDateEditable = async (publishDateCandidate, { req }) => {
 
         // If there is a publishEndDate in request, it will be verified only in publishEndDateEditable
         if (!publishEndDateCandidate &&
-            (Offer)(offer.owner, publishDateCandidate, publishEndDate)) {
+            !(await concurrentOffersNotExceeded(Offer)(
+                offer.owner, publishDateCandidate, publishEndDateCandidate, offer._id
+            ))) {
             throw new Error(
                 ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
         }
@@ -258,7 +260,7 @@ const publishEndDateEditable = async (publishEndDateCandidate, { req }) => {
 
         if (
             !(await concurrentOffersNotExceeded(Offer)(
-                offer.owner, publishDate, publishEndDateCandidate
+                offer.owner, publishDate, publishEndDateCandidate, offer._id
             ))) {
             throw new Error(
                 ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
