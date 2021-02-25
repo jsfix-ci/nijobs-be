@@ -2,7 +2,7 @@ const { body, query, param } = require("express-validator");
 
 const { useExpressValidators, buildErrorResponse } = require("../errorHandler");
 const ValidationReasons = require("./validationReasons");
-const { valuesInSet, ensureArray } = require("./validatorUtils");
+const { valuesInSet, ensureArray, concurrentOffersNotExceeded } = require("./validatorUtils");
 const JobTypes = require("../../../models/constants/JobTypes");
 const { FieldTypes, MIN_FIELDS, MAX_FIELDS } = require("../../../models/constants/FieldTypes");
 const { TechnologyTypes, MIN_TECHNOLOGIES, MAX_TECHNOLOGIES } = require("../../../models/constants/TechnologyTypes");
@@ -18,6 +18,7 @@ const {
     OFFER_EDIT_GRACE_PERIOD_HOURS,
 } = require("../../../models/constants/TimeConstants");
 const companyMiddleware = require("../company");
+const CompanyConstants = require("../../../models/constants/Company");
 
 const mustSpecifyJobMinDurationIfJobMaxDurationSpecified = (jobMaxDuration, { req }) => {
 
@@ -209,15 +210,21 @@ const publishDateEditable = async (publishDateCandidate, { req }) => {
     try {
         const offer = await (new OfferService()).getOfferById(req.params.offerId, req.user);
         const { publishEndDate: publishEndDateCandidate } = req.body;
-
+        const publishEndDate = offer.publishEndDate.toISOString();
         // If the new publishEndDate is after the new publishDate, the verification will be done in publishEndDate
-        if (publishDateCandidate >= offer.publishEndDate.toISOString() &&
+        if (publishDateCandidate >= publishEndDate &&
                 !publishEndDateCandidate) {
 
             // end date is earlier than publish date, error!
             throw new Error(ValidationReasons.MUST_BE_BEFORE("publishEndDate"));
         }
 
+        // If there is a publishEndDate in request, it will be verified only in publishEndDateEditable
+        if (!publishEndDateCandidate &&
+            (Offer)(offer.owner, publishDateCandidate, publishEndDate)) {
+            throw new Error(
+                ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
+        }
     } catch (err) {
         console.error(err);
         // Also catches any fail to the DB
@@ -247,6 +254,14 @@ const publishEndDateEditable = async (publishEndDateCandidate, { req }) => {
 
         if (publishEndDateCandidate <= publishDate) {
             throw new Error(ValidationReasons.MUST_BE_AFTER("publishDate"));
+        }
+
+        if (
+            !(await concurrentOffersNotExceeded(Offer)(
+                offer.owner, publishDate, publishEndDateCandidate
+            ))) {
+            throw new Error(
+                ValidationReasons.MAX_CONCURRENT_OFFERS_EXCEEDED(CompanyConstants.offers.max_concurrent));
         }
     } catch (err) {
         console.error(err);
