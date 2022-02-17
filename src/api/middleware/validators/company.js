@@ -75,6 +75,10 @@ export const deleteCompany = useExpressValidators([
     existingCompanyParamValidator,
 ]);
 
+export const profile = useExpressValidators([
+    existingCompanyParamValidator,
+]);
+
 /**
  * Checks if the param companyId is valid and corresponds to a valid company
  */
