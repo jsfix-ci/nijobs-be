@@ -227,6 +227,142 @@ describe("Company endpoint", () => {
             });
         });
 
+        describe("GET /company/:companyId/profile", () => {
+            let test_company, test_company_2;
+            const test_user_admin = {
+                email: "admin@email.com",
+                password: "password123",
+                isAdmin: true
+            };
+            const test_company_data = {
+                name: "test-company",
+                hasFinishedRegistration: true,
+                logo: "http://awebsite.com/alogo.jpg"
+            };
+            const test_agent = agent();
+            const adminReason = "yes.";
+
+            beforeAll(async () => {
+                await test_agent
+                    .delete("/auth/login")
+                    .expect(HTTPStatus.OK);
+
+                await Company.deleteMany({});
+
+                test_company = await Company.create(test_company_data);
+                test_company_2 = await Company.create(test_company_data);
+
+                await Account.deleteMany({});
+
+                await Account.create({
+                    email: test_user_admin.email,
+                    password: await hash(test_user_admin.password),
+                    isAdmin: true
+                });
+            });
+
+            afterEach(async () => {
+                await test_agent
+                    .delete("/auth/login")
+                    .expect(HTTPStatus.OK);
+            });
+
+            test("should fail if not a valid id", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const res = await test_agent
+                    .get("/company/123/profile")
+                    .send({ adminReason })
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors[0]).toHaveProperty("param", "companyId");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.OBJECT_ID);
+            });
+
+            test("should fail if company does not exist", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const id = "111111111111111111111111";
+                const res = await test_agent
+                    .get(`/company/${id}/profile`)
+                    .send({ adminReason })
+                    .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors[0]).toHaveProperty("param", "companyId");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(id));
+            });
+
+            test("should return if the offers array is empty", async () => {
+                const res = await test_agent
+                    .get(`/company/${test_company_2.id}/profile`);
+                expect(res.body).toHaveProperty("offers");
+                expect(res.body.offers).toHaveProperty("length", 0);
+            });
+
+            test("should return offers lower than X (size: 3)", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const offers_2 = await Promise.all(Array(3).fill(null).map((_) =>
+                    Offer.create({
+                        ...generateTestOffer({
+                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                        }),
+                        owner: test_company_2._id,
+                        ownerName: test_company_2.name,
+                        ownerLogo: test_company_2.logo })).sort((a1, a2) => a1.publishDate > a2.publishDate));
+
+                const res = await test_agent
+                    .get(`/company/${test_company_2._id}/profile`)
+                    .expect(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("offers");
+                expect(res.body.offers).toHaveProperty("length", 3);
+                offers_2.forEach((val, idx) => {
+                    expect(res.body.offers[idx].owner.toString()).toEqual(val.owner.toString());
+                    expect(res.body.offers[idx].ownerName.toString()).toEqual(val.ownerName.toString());
+                    expect(res.body.offers[idx].ownerLogo.toString()).toEqual(val.ownerLogo.toString());
+                });
+            });
+
+            test("should return if offers is X (size: 5)", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const offers = await Promise.all(Array(5).fill(null).map((_) =>
+                    Offer.create({
+                        ...generateTestOffer({
+                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
+                        }),
+                        owner: test_company._id,
+                        ownerName: test_company.name,
+                        ownerLogo: test_company.logo })).sort((a1, a2) => a1.publishDate > a2.publishDate));
+
+                const res = await test_agent
+                    .get(`/company/${test_company._id}/profile`)
+                    .expect(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("offers");
+                expect(res.body.offers).toHaveProperty("length", 5);
+                offers.forEach((val, idx) => {
+                    expect(res.body.offers[idx].owner.toString()).toEqual(val.owner.toString());
+                    expect(res.body.offers[idx].ownerName.toString()).toEqual(val.ownerName.toString());
+                    expect(res.body.offers[idx].ownerLogo.toString()).toEqual(val.ownerLogo.toString());
+                });
+            });
+        });
     });
 
     describe("POST /company/application/finish", () => {
