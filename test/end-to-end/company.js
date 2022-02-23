@@ -228,7 +228,7 @@ describe("Company endpoint", () => {
         });
 
         describe("GET /company/:companyId/profile", () => {
-            let test_company, test_company_2;
+            let test_company, test_company_2, test_company_3;
             const test_user_admin = {
                 email: "admin@email.com",
                 password: "password123",
@@ -251,6 +251,7 @@ describe("Company endpoint", () => {
 
                 test_company = await Company.create(test_company_data);
                 test_company_2 = await Company.create(test_company_data);
+                test_company_3 = await Company.create(test_company_data);
 
                 await Account.deleteMany({});
 
@@ -300,67 +301,106 @@ describe("Company endpoint", () => {
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(id));
             });
 
-            test("should return if the offers array is empty", async () => {
+            /* test("", async () => {
+
+            });*/
+
+            test("should succeed if the company has no offers", async () => {
                 const res = await test_agent
-                    .get(`/company/${test_company_2.id}/profile`);
+                    .get(`/company/${test_company_2.id}/profile`)
+                    .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers).toHaveProperty("length", 0);
             });
 
-            test("should return offers lower than X (size: 3)", async () => {
+            test("should return all offers if below the maximum limit", async () => {
                 await test_agent
                     .post("/auth/login")
                     .send(test_user_admin)
                     .expect(HTTPStatus.OK);
 
-                const offers_2 = await Promise.all(Array(3).fill(null).map((_) =>
-                    Offer.create({
-                        ...generateTestOffer({
+                const offers = await Promise.all(Array(CompanyConstants.offers.max_profile_visible - 1).fill(null).map((_) =>
+                    Offer.create(
+                        generateTestOffer({
                             "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
-                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
-                        }),
-                        owner: test_company_2._id,
-                        ownerName: test_company_2.name,
-                        ownerLogo: test_company_2.logo })).sort((a1, a2) => a1.publishDate > a2.publishDate));
+                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+                            owner: test_company_2._id,
+                            ownerName: test_company_2.name,
+                            ownerLogo: test_company_2.logo
+                        })
+                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
+
 
                 const res = await test_agent
                     .get(`/company/${test_company_2._id}/profile`)
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
-                expect(res.body.offers).toHaveProperty("length", 3);
-                offers_2.forEach((val, idx) => {
+                expect(res.body.offers.length).toBeLessThan(CompanyConstants.offers.max_profile_visible);
+                offers.forEach((val, idx) => {
                     expect(res.body.offers[idx].owner.toString()).toEqual(val.owner.toString());
                     expect(res.body.offers[idx].ownerName.toString()).toEqual(val.ownerName.toString());
                     expect(res.body.offers[idx].ownerLogo.toString()).toEqual(val.ownerLogo.toString());
                 });
             });
 
-            test("should return if offers is X (size: 5)", async () => {
+            test("should return all offers if they match the maximum limit", async () => {
                 await test_agent
                     .post("/auth/login")
                     .send(test_user_admin)
                     .expect(HTTPStatus.OK);
 
-                const offers = await Promise.all(Array(5).fill(null).map((_) =>
-                    Offer.create({
-                        ...generateTestOffer({
+                const offers = await Promise.all(Array(CompanyConstants.offers.max_profile_visible).fill(null).map((_) =>
+                    Offer.create(
+                        generateTestOffer({
                             "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
-                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString()
-                        }),
-                        owner: test_company._id,
-                        ownerName: test_company.name,
-                        ownerLogo: test_company.logo })).sort((a1, a2) => a1.publishDate > a2.publishDate));
+                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+                            owner: test_company._id,
+                            ownerName: test_company.name,
+                            ownerLogo: test_company.logo
+                        })
+                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
 
                 const res = await test_agent
                     .get(`/company/${test_company._id}/profile`)
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
-                expect(res.body.offers).toHaveProperty("length", 5);
+                expect(res.body.offers.length).toEqual(CompanyConstants.offers.max_profile_visible);
                 offers.forEach((val, idx) => {
                     expect(res.body.offers[idx].owner.toString()).toEqual(val.owner.toString());
                     expect(res.body.offers[idx].ownerName.toString()).toEqual(val.ownerName.toString());
                     expect(res.body.offers[idx].ownerLogo.toString()).toEqual(val.ownerLogo.toString());
                 });
+            });
+
+            test("should return the maximum number of offers to be displayed if there are more offers than it", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user_admin)
+                    .expect(HTTPStatus.OK);
+
+                const offers = await Promise.all(Array(CompanyConstants.offers.max_profile_visible + 1).fill(null).map((_) =>
+                    Offer.create(
+                        generateTestOffer({
+                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+                            owner: test_company_3._id,
+                            ownerName: test_company_3.name,
+                            ownerLogo: test_company_3.logo
+                        })
+                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
+
+                const res = await test_agent
+                    .get(`/company/${test_company_3._id}/profile`)
+                    .expect(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("offers");
+                expect(res.body.offers.length).toEqual(CompanyConstants.offers.max_profile_visible);
+                for (let idx = 0; idx < CompanyConstants.offers.max_concurrent; idx++) {
+                    const val = offers[idx];
+
+                    expect(res.body.offers[idx].owner.toString()).toEqual(val.owner.toString());
+                    expect(res.body.offers[idx].ownerName.toString()).toEqual(val.ownerName.toString());
+                    expect(res.body.offers[idx].ownerLogo.toString()).toEqual(val.ownerLogo.toString());
+                }
             });
         });
     });
