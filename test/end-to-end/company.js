@@ -3,6 +3,7 @@ import HTTPStatus from "http-status-codes";
 import Account from "../../src/models/Account";
 import Company from "../../src/models/Company";
 import Offer from "../../src/models/Offer";
+import OfferService from "../../src/services/offer";
 import hash from "../../src/lib/passwordHashing";
 import ValidationReasons from "../../src/api/middleware/validators/validationReasons";
 import CompanyConstants from "../../src/models/constants/Company";
@@ -228,7 +229,11 @@ describe("Company endpoint", () => {
         });
 
         describe("GET /company/:companyId/profile", () => {
-            let test_company, test_company_2, test_company_3;
+            let test_company, test_company_2, test_company_3, test_company_4, hidden_company, disabled_company;
+            const test_user = {
+                email: "user@email.com",
+                password: "password123"
+            };
             const test_user_admin = {
                 email: "admin@email.com",
                 password: "password123",
@@ -243,15 +248,11 @@ describe("Company endpoint", () => {
             const adminReason = "yes.";
 
             beforeAll(async () => {
-                await test_agent
-                    .delete("/auth/login")
-                    .expect(HTTPStatus.OK);
-
                 await Company.deleteMany({});
 
-                test_company = await Company.create(test_company_data);
-                test_company_2 = await Company.create(test_company_data);
-                test_company_3 = await Company.create(test_company_data);
+                [test_company, test_company_2, test_company_3, test_company_4, hidden_company, disabled_company] =
+                await Company.create(
+                    [test_company_data, test_company_data, test_company_data, test_company_data, test_company_data, test_company_data]);
 
                 await Account.deleteMany({});
 
@@ -259,6 +260,12 @@ describe("Company endpoint", () => {
                     email: test_user_admin.email,
                     password: await hash(test_user_admin.password),
                     isAdmin: true
+                });
+
+                await Account.create({
+                    email: test_user.email,
+                    password: await hash(test_user.password),
+                    company: test_company_4._id
                 });
             });
 
@@ -301,10 +308,6 @@ describe("Company endpoint", () => {
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_NOT_FOUND(id));
             });
 
-            /* test("", async () => {
-
-            });*/
-
             test("should succeed if the company has no offers", async () => {
                 const res = await test_agent
                     .get(`/company/${test_company_2.id}/profile`)
@@ -335,7 +338,7 @@ describe("Company endpoint", () => {
                     .get(`/company/${test_company_2._id}/profile`)
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
-                expect(res.body.offers.length).toBeLessThan(CompanyConstants.offers.max_profile_visible);
+                expect(res.body.offers.length).toEqual(CompanyConstants.offers.max_profile_visible - 1);
                 offers.forEach((val, idx) => {
                     expect(res.body.offers[idx].owner.toString()).toEqual(val.owner.toString());
                     expect(res.body.offers[idx].ownerName.toString()).toEqual(val.ownerName.toString());
@@ -401,6 +404,51 @@ describe("Company endpoint", () => {
                     expect(res.body.offers[idx].ownerName.toString()).toEqual(val.ownerName.toString());
                     expect(res.body.offers[idx].ownerLogo.toString()).toEqual(val.ownerLogo.toString());
                 }
+            });
+
+            test("should return if a random user is unable to see hidden offers", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user)
+                    .expect(HTTPStatus.OK);
+
+                await Offer.create(
+                    generateTestOffer({
+                        isHidden: true,
+                        owner: hidden_company._id.toString(),
+                        ownerName: hidden_company.name,
+                        ownerLogo: hidden_company.logo,
+                    })
+                );
+
+                const res = await test_agent
+                    .get(`/company/${hidden_company._id}/profile`)
+                    .expect(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("offers");
+                expect(res.body.offers.length).toEqual(0);
+            });
+
+            test("should return if a random user is unable to see disabled offers", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user)
+                    .expect(HTTPStatus.OK);
+
+                const disabled_test_offer = await Offer.create(
+                    generateTestOffer({
+                        owner: disabled_company._id.toString(),
+                        ownerName: disabled_company.name,
+                        ownerLogo: disabled_company.logo,
+                    })
+                );
+
+                await (new OfferService()).disable(disabled_test_offer._id, OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
+
+                const res = await test_agent
+                    .get(`/company/${disabled_company._id}/profile`)
+                    .expect(HTTPStatus.OK);
+                expect(res.body).toHaveProperty("offers");
+                expect(res.body.offers.length).toEqual(0);
             });
         });
     });
