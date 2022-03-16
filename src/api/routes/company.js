@@ -77,7 +77,7 @@ export default (app) => {
         const company = await new CompanyService().findById(req.params.companyId, req.hasAdminPrivileges, req.hasAdminPrivileges);
         const offers = (await new OfferService()
             .getOffersByCompanyId(req.params.companyId, req.targetOwner, req.hasAdminPrivileges, {
-                filter: { sort: { publishDate: "desc" }, limit: CompanyConstants.offers.max_profile_visible }
+                sort: { publishDate: "desc" }, limit: CompanyConstants.offers.max_profile_visible
             })
         );
         return res.json({ company, offers });

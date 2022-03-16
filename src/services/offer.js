@@ -295,7 +295,7 @@ class OfferService {
      * @returns Visible offers
      */
     async getOffersByCompanyId(companyId, userCompanyId, hasAdminPrivileges, filters) {
-        return (await Offer.find({ owner: companyId }, null, filters.filter))
+        return (await Offer.find({ owner: companyId }, null, filters))
             .filter((offer) =>
                 this.isVisibleOffer(offer, hasAdminPrivileges, userCompanyId)
             );
