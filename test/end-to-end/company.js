@@ -229,7 +229,8 @@ describe("Company endpoint", () => {
         });
 
         describe("GET /company/:companyId/profile", () => {
-            let test_company, test_company_2, test_company_3, test_company_4, hidden_company, disabled_offer_company;
+            let test_company, test_company_2, test_company_3, test_company_4, hidden_offer_company,
+                disabled_offer_company, disabled_company, blocked_company;
             const test_user = {
                 email: "user@email.com",
                 password: "password123"
@@ -242,17 +243,32 @@ describe("Company endpoint", () => {
             const test_company_data = {
                 name: "test-company",
                 hasFinishedRegistration: true,
-                logo: "http://awebsite.com/alogo.jpg"
+                logo: "http://awebsite.com/alogo.jpg",
             };
+            const disabled_company_data = {
+                name: "test-company",
+                hasFinishedRegistration: true,
+                logo: "http://awebsite.com/alogo.jpg",
+                isDisabled: true,
+            };
+            const blocked_company_data = {
+                name: "test-company",
+                hasFinishedRegistration: true,
+                logo: "http://awebsite.com/alogo.jpg",
+                isBlocked: true,
+            };
+
             const test_agent = agent();
             const adminReason = "yes.";
 
             beforeAll(async () => {
                 await Company.deleteMany({});
 
-                [test_company, test_company_2, test_company_3, test_company_4, hidden_company, disabled_offer_company] =
+                [test_company, test_company_2, test_company_3, test_company_4, hidden_offer_company,
+                    disabled_offer_company, disabled_company, blocked_company] =
                 await Company.create(
-                    [test_company_data, test_company_data, test_company_data, test_company_data, test_company_data, test_company_data]);
+                    [test_company_data, test_company_data, test_company_data, test_company_data, test_company_data,
+                        test_company_data, disabled_company_data, blocked_company_data]);
 
                 await Account.deleteMany({});
 
@@ -415,14 +431,14 @@ describe("Company endpoint", () => {
                 await Offer.create(
                     generateTestOffer({
                         isHidden: true,
-                        owner: hidden_company._id.toString(),
-                        ownerName: hidden_company.name,
-                        ownerLogo: hidden_company.logo,
+                        owner: hidden_offer_company._id.toString(),
+                        ownerName: hidden_offer_company.name,
+                        ownerLogo: hidden_offer_company.logo,
                     })
                 );
 
                 const res = await test_agent
-                    .get(`/company/${hidden_company._id}/profile`)
+                    .get(`/company/${hidden_offer_company._id}/profile`)
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers.length).toEqual(0);
@@ -449,6 +465,51 @@ describe("Company endpoint", () => {
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers.length).toEqual(0);
+            });
+
+            test("should return if a disabled company returns 403", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user)
+                    .expect(HTTPStatus.OK);
+
+                await Promise.all(Array(CompanyConstants.offers.max_profile_visible - 1).fill(null).map((_) =>
+                    Offer.create(
+                        generateTestOffer({
+                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+                            owner: disabled_company._id,
+                            ownerName: disabled_company.name,
+                            ownerLogo: disabled_company.logo
+                        })
+                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
+
+                await test_agent
+                    .get(`/company/${disabled_company._id}/profile`)
+                    .expect(HTTPStatus.FORBIDDEN);
+            });
+
+            test("should return if a blocked company returns 403", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user)
+                    .expect(HTTPStatus.OK);
+
+                await Promise.all(Array(CompanyConstants.offers.max_profile_visible - 1).fill(null).map((_) =>
+                    Offer.create(
+                        generateTestOffer({
+                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+                            owner: blocked_company._id,
+                            ownerName: blocked_company.name,
+                            ownerLogo: blocked_company.logo
+                        })
+                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
+
+                await test_agent
+                    .get(`/company/${blocked_company._id}/profile`)
+                    .expect(HTTPStatus.FORBIDDEN);
+
             });
         });
     });
