@@ -75,8 +75,8 @@ export default (app) => {
 
     router.get("/:companyId/profile",
         validators.profile,
-        (req, res, next) => companyMiddleware.isNotBlocked(req.params.companyId)(req, res, next),
-        (req, res, next) => companyMiddleware.isNotDisabled(req.params.companyId)(req, res, next),
+        (req, res, next) => companyMiddleware.restrictedAccess(req.params.companyId)(req, res, next),
+        (req, res, next) => companyMiddleware.registrationStatus(req.params.companyId)(req, res, next),
         async (req, res) => {
             const company = await new CompanyService().findById(req.params.companyId, req.hasAdminPrivileges, req.hasAdminPrivileges);
             const offers = (await new OfferService()
