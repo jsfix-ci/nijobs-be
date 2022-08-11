@@ -230,9 +230,13 @@ describe("Company endpoint", () => {
 
         describe("GET /company/:companyId/profile", () => {
             let test_company, test_company_2, test_company_3, test_company_4, hidden_offer_company,
-                disabled_offer_company, disabled_company, blocked_company;
+                disabled_offer_company, disabled_company, blocked_company, unfinished_registration_company;
             const test_user = {
                 email: "user@email.com",
+                password: "password123"
+            };
+            const test_unfinished_company_user = {
+                email: "unfinished@email.com",
                 password: "password123"
             };
             const test_user_admin = {
@@ -257,6 +261,11 @@ describe("Company endpoint", () => {
                 logo: "http://awebsite.com/alogo.jpg",
                 isBlocked: true,
             };
+            const unfinished_registration_company_data = {
+                name: "test-company",
+                hasFinishedRegistration: false,
+                logo: "http://awebsite.com/alogo.jpg",
+            };
 
             const test_agent = agent();
             const adminReason = "yes.";
@@ -265,10 +274,10 @@ describe("Company endpoint", () => {
                 await Company.deleteMany({});
 
                 [test_company, test_company_2, test_company_3, test_company_4, hidden_offer_company,
-                    disabled_offer_company, disabled_company, blocked_company] =
+                    disabled_offer_company, disabled_company, blocked_company, unfinished_registration_company] =
                 await Company.create(
                     [test_company_data, test_company_data, test_company_data, test_company_data, test_company_data,
-                        test_company_data, disabled_company_data, blocked_company_data]);
+                        test_company_data, disabled_company_data, blocked_company_data, unfinished_registration_company_data]);
 
                 await Account.deleteMany({});
 
@@ -282,6 +291,12 @@ describe("Company endpoint", () => {
                     email: test_user.email,
                     password: await hash(test_user.password),
                     company: test_company_4._id
+                });
+
+                await Account.create({
+                    email: test_unfinished_company_user.email,
+                    password: await hash(test_unfinished_company_user.password),
+                    company: unfinished_registration_company._id
                 });
             });
 
@@ -331,7 +346,6 @@ describe("Company endpoint", () => {
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers).toHaveProperty("length", 0);
 
-                console.info(res.body);
                 expect(res.body).toHaveProperty("company");
                 expect(res.body.company).toHaveProperty("_id");
                 expect(JSON.stringify(res.body.company._id)).toEqual(JSON.stringify(test_company_2._id));
@@ -368,7 +382,6 @@ describe("Company endpoint", () => {
                     expect(res.body.offers[idx].ownerLogo.toString()).toEqual(val.ownerLogo.toString());
                 });
 
-                console.info(res.body);
                 expect(res.body).toHaveProperty("company");
                 expect(res.body.company).toHaveProperty("_id");
                 expect(JSON.stringify(res.body.company._id)).toEqual(JSON.stringify(test_company_2._id));
@@ -404,7 +417,6 @@ describe("Company endpoint", () => {
                     expect(res.body.offers[idx].ownerLogo.toString()).toEqual(val.ownerLogo.toString());
                 });
 
-                console.info(res.body);
                 expect(res.body).toHaveProperty("company");
                 expect(res.body.company).toHaveProperty("_id");
                 expect(JSON.stringify(res.body.company._id)).toEqual(JSON.stringify(test_company._id));
@@ -442,7 +454,6 @@ describe("Company endpoint", () => {
                     expect(res.body.offers[idx].ownerLogo.toString()).toEqual(val.ownerLogo.toString());
                 }
 
-                console.info(res.body);
                 expect(res.body).toHaveProperty("company");
                 expect(res.body.company).toHaveProperty("_id");
                 expect(JSON.stringify(res.body.company._id)).toEqual(JSON.stringify(test_company_3._id));
@@ -471,7 +482,6 @@ describe("Company endpoint", () => {
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers.length).toEqual(0);
 
-                console.info(res.body);
                 expect(res.body).toHaveProperty("company");
                 expect(res.body.company).toHaveProperty("_id");
                 expect(JSON.stringify(res.body.company._id)).toEqual(JSON.stringify(hidden_offer_company._id));
@@ -501,7 +511,6 @@ describe("Company endpoint", () => {
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers.length).toEqual(0);
 
-                console.info(res.body);
                 expect(res.body).toHaveProperty("company");
                 expect(res.body.company).toHaveProperty("_id");
                 expect(JSON.stringify(res.body.company._id)).toEqual(JSON.stringify(disabled_offer_company._id));
@@ -559,6 +568,60 @@ describe("Company endpoint", () => {
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
                 expect(res.body).toHaveProperty("errors");
                 expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.COMPANY_BLOCKED);
+            });
+
+            test("should fail to retrieve details if company hasn't finished registration (user)", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_user)
+                    .expect(HTTPStatus.OK);
+
+                await Promise.all(Array(CompanyConstants.offers.max_profile_visible - 1).fill(null).map((_) =>
+                    Offer.create(
+                        generateTestOffer({
+                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+                            owner: blocked_company._id,
+                            ownerName: blocked_company.name,
+                            ownerLogo: blocked_company.logo
+                        })
+                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
+
+                const res = await test_agent
+                    .get(`/company/${unfinished_registration_company._id}/profile`)
+                    .expect(HTTPStatus.FORBIDDEN);
+
+                console.info(res.body);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.INSUFFICIENT_PERMISSIONS);
+            });
+
+            test("should fail to retrieve details if company hasn't finished registration (company)", async () => {
+                await test_agent
+                    .post("/auth/login")
+                    .send(test_unfinished_company_user)
+                    .expect(HTTPStatus.OK);
+
+                await Promise.all(Array(CompanyConstants.offers.max_profile_visible - 1).fill(null).map((_) =>
+                    Offer.create(
+                        generateTestOffer({
+                            "publishDate": (new Date(Date.now() - (DAY_TO_MS))).toISOString(),
+                            "publishEndDate": (new Date(Date.now() + (DAY_TO_MS))).toISOString(),
+                            owner: blocked_company._id,
+                            ownerName: blocked_company.name,
+                            ownerLogo: blocked_company.logo
+                        })
+                    )).sort((a1, a2) => a1.publishDate > a2.publishDate));
+
+                const res = await test_agent
+                    .get(`/company/${unfinished_registration_company._id}/profile`)
+                    .expect(HTTPStatus.FORBIDDEN);
+
+                console.info(res.body);
+                expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
+                expect(res.body).toHaveProperty("errors");
+                expect(res.body.errors[0]).toHaveProperty("msg", ValidationReasons.REGISTRATION_NOT_FINISHED);
             });
         });
     });
