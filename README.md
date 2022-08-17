@@ -6,7 +6,6 @@
 [![MVP Milestone](https://img.shields.io/github/milestones/progress-percent/NIAEFEUP/nijobs-be/2?style=for-the-badge)](https://github.com/NIAEFEUP/nijobs-be/milestone/2)
 [![GitHub license](https://img.shields.io/github/license/NIAEFEUP/nijobs-be.svg?style=for-the-badge)](https://github.com/NIAEFEUP/nijobs-be/blob/master/LICENSE)
 
-
 A platform for companies to advertise their job opportunities to the students.
 
 Made with ❤️ by NIAEFEUP.
@@ -22,7 +21,7 @@ Made with ❤️ by NIAEFEUP.
 
 ### Installing Docker
 
-The best approach to install `docker` is to follow the official guide [here](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-using-the-repository). 
+The best approach to install `docker` is to follow the official guide [here](https://docs.docker.com/install/linux/docker-ce/ubuntu/#install-using-the-repository).
 
 Please follow the steps in `Install using the repository` section.
 
@@ -40,6 +39,14 @@ To start developing, copy `.env` to `.env.local` (by running `cp .env .env.local
 
 Then, you can override the variable's values, according to their explanation in `.env`.
 
+#### CORS Setup
+
+In order to allow requests from multiple origins besides the one defined by `ACCESS_CONTROL_ALLOW_ORIGIN`, an array of URL's or regexes can be defined by `ACCESS_CONTROL_ALLOW_ORIGIN_REGEX_LIST`. It is crucial that all URL's have no trailing `/`. Example:
+
+```
+ACCESS_CONTROL_ALLOW_ORIGIN=https://localhost:3000
+ACCESS_CONTROL_ALLOW_ORIGIN_REGEX_LIST=["https:\\/\\/deploy-preview-\\d+--nijobs\\.netlify\\.app", "https://nijobs.netlify.app"]
+```
 
 ## Usage
 
@@ -70,11 +77,13 @@ To run the test suite (mostly for CI/CD use), the workflow is similar to the dev
 ```bash
 docker-compose build test
 ```
+
 After building the images/containers, the tests can be run with:
 
 ```bash
 docker-compose up --exit-code-from test test
 ```
+
 > A `test.sh` file is available in the project's root folder to run these commands on linux environments (simply run `./test.sh [--build]`)
 
 ### Production Environment
@@ -84,11 +93,13 @@ The production environment can be created by doing:
 ```bash
 docker-compose build web-prod
 ```
+
 If you have already built the images/containers before you can simply run:
 
 ```bash
 docker-compose up web-prod
 ```
+
 > A `prod.sh` file is available in the project's root folder to run these commands on linux environments (simply run `./prod.sh [--build]`)
 
 This environment doesn't have hot reloading or dev extensions and is made to be used in the deployment server running this application.
@@ -109,6 +120,7 @@ So, you can run:
 This approach might be the least straightforward to set up but is the most flexible as you can freely and directly interact with the runtime of the application.
 
 #### HTTPS details
+
 In order for Cookies to work correctly, we need to use HTTPS in development, so that we can use local servers to test frontend changes in netlify.
 
 If you use Docker, the certs will be automatically generated and used. If you are running npm directly, you should run `./certs/certgen.sh` so that it generates the required files.
@@ -124,22 +136,24 @@ Testing is done using [`Jest`](https://jestjs.io/) and [`Supertest`](https://git
 ### Project Concepts Map
 
 ![Project Concepts Map](https://imgur.com/HVXk1Jg.png)
+
 > [Source](https://app.creately.com/diagram/Kfsc8WeFzKe/edit)
 
 ### Project Structure
 
 - `src/`
-    - `api/`
-        - `routes/` - Methods that register endpoints for the app
-        - `middleware/` - Application middleware. For example validators go here
-    - `lib/` - Supporting code
-    - `loaders/` - Modules responsible for the startup process
-    - `models/` - Database entity models (Mongoose models)
-    - `services/` - Business logic for the controllers
-    - `config/` - Application configurations (settings, authentication, etc.)
-        - `env.js` - Environment variables and related configurations
-    - `index.js` - App entry point
+  - `api/`
+    - `routes/` - Methods that register endpoints for the app
+    - `middleware/` - Application middleware. For example validators go here
+  - `lib/` - Supporting code
+  - `loaders/` - Modules responsible for the startup process
+  - `models/` - Database entity models (Mongoose models)
+  - `services/` - Business logic for the controllers
+  - `config/` - Application configurations (settings, authentication, etc.)
+    - `env.js` - Environment variables and related configurations
+  - `index.js` - App entry point
 - `test/` - Self explanatory: Unit tests, functional (end-to-end) tests, etc.
 
 ## License
+
 [GNU General Public License v3.0](https://choosealicense.com/licenses/gpl-3.0/)
