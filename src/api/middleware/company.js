@@ -90,12 +90,17 @@ export const restrictedAccess = (owner) => async (req, res, next) => {
     let error = {};
 
     if (req.params?.companyId === req.user.company) {
+        let reason = ValidationReasons.UNKNOWN;
+
+        if (company.isBlocked)
+            reason = ValidationReasons.COMPANY_BLOCKED;
+        else if (company.isDisabled)
+            reason = ValidationReasons.COMPANY_DISABLED;
+
         error = new APIError(
             HTTPStatus.OK,
             ErrorTypes.VALIDATION_ERROR,
-            company.isBlocked  ? ValidationReasons.COMPANY_BLOCKED  :
-            company.isDisabled ? ValidationReasons.COMPANY_DISABLED :
-                                 ValidationReasons.UNKNOWN,
+            reason,
             { company: company }
         );
     } else {
