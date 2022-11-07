@@ -228,7 +228,7 @@ describe("Company endpoint", () => {
             });
         });
 
-        describe("GET /company/:companyId/profile", () => {
+        describe("GET /company/:companyId", () => {
             let test_company, test_company_2, test_company_3, test_company_4, hidden_offer_company,
                 disabled_offer_company, disabled_company, blocked_company, unfinished_registration_company;
             const test_user = {
@@ -313,7 +313,7 @@ describe("Company endpoint", () => {
                     .expect(HTTPStatus.OK);
 
                 const res = await test_agent
-                    .get("/company/123/profile")
+                    .get("/company/123")
                     .send({ adminReason })
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
@@ -330,7 +330,7 @@ describe("Company endpoint", () => {
 
                 const id = "111111111111111111111111";
                 const res = await test_agent
-                    .get(`/company/${id}/profile`)
+                    .get(`/company/${id}`)
                     .send({ adminReason })
                     .expect(HTTPStatus.UNPROCESSABLE_ENTITY);
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.VALIDATION_ERROR);
@@ -341,7 +341,7 @@ describe("Company endpoint", () => {
 
             test("should succeed when the company has no offers", async () => {
                 const res = await test_agent
-                    .get(`/company/${test_company_2.id}/profile`)
+                    .get(`/company/${test_company_2.id}`)
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers).toHaveProperty("length", 0);
@@ -372,7 +372,7 @@ describe("Company endpoint", () => {
 
 
                 const res = await test_agent
-                    .get(`/company/${test_company_2._id}/profile`)
+                    .get(`/company/${test_company_2._id}`)
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers.length).toEqual(CompanyConstants.offers.max_profile_visible - 1);
@@ -407,7 +407,7 @@ describe("Company endpoint", () => {
                     )).sort((a1, a2) => a1.publishDate > a2.publishDate));
 
                 const res = await test_agent
-                    .get(`/company/${test_company._id}/profile`)
+                    .get(`/company/${test_company._id}`)
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers.length).toEqual(CompanyConstants.offers.max_profile_visible);
@@ -442,7 +442,7 @@ describe("Company endpoint", () => {
                     )).sort((a1, a2) => a1.publishDate > a2.publishDate));
 
                 const res = await test_agent
-                    .get(`/company/${test_company_3._id}/profile`)
+                    .get(`/company/${test_company_3._id}`)
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers.length).toEqual(CompanyConstants.offers.max_profile_visible);
@@ -477,7 +477,7 @@ describe("Company endpoint", () => {
                 );
 
                 const res = await test_agent
-                    .get(`/company/${hidden_offer_company._id}/profile`)
+                    .get(`/company/${hidden_offer_company._id}`)
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers.length).toEqual(0);
@@ -506,7 +506,7 @@ describe("Company endpoint", () => {
                 await (new OfferService()).disable(disabled_test_offer._id, OfferConstants.HiddenOfferReasons.ADMIN_BLOCK);
 
                 const res = await test_agent
-                    .get(`/company/${disabled_offer_company._id}/profile`)
+                    .get(`/company/${disabled_offer_company._id}`)
                     .expect(HTTPStatus.OK);
                 expect(res.body).toHaveProperty("offers");
                 expect(res.body.offers.length).toEqual(0);
@@ -536,7 +536,7 @@ describe("Company endpoint", () => {
                     )).sort((a1, a2) => a1.publishDate > a2.publishDate));
 
                 const res = await test_agent
-                    .get(`/company/${disabled_company._id}/profile`)
+                    .get(`/company/${disabled_company._id}`)
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
@@ -562,7 +562,7 @@ describe("Company endpoint", () => {
                     )).sort((a1, a2) => a1.publishDate > a2.publishDate));
 
                 const res = await test_agent
-                    .get(`/company/${blocked_company._id}/profile`)
+                    .get(`/company/${blocked_company._id}`)
                     .expect(HTTPStatus.FORBIDDEN);
 
                 expect(res.body).toHaveProperty("error_code", ErrorTypes.FORBIDDEN);
@@ -588,7 +588,7 @@ describe("Company endpoint", () => {
                     )).sort((a1, a2) => a1.publishDate > a2.publishDate));
 
                 const res = await test_agent
-                    .get(`/company/${unfinished_registration_company._id}/profile`)
+                    .get(`/company/${unfinished_registration_company._id}`)
                     .expect(HTTPStatus.FORBIDDEN);
 
                 console.info(res.body);
@@ -615,7 +615,7 @@ describe("Company endpoint", () => {
                     )).sort((a1, a2) => a1.publishDate > a2.publishDate));
 
                 const res = await test_agent
-                    .get(`/company/${unfinished_registration_company._id}/profile`)
+                    .get(`/company/${unfinished_registration_company._id}`)
                     .expect(HTTPStatus.FORBIDDEN);
 
                 console.info(res.body);
