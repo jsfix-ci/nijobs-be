@@ -160,8 +160,8 @@ class OfferService {
         return offer;
     }
 
-    _hideByCompany(owner, reason) {
-        return Offer.updateMany(
+    async _hideByCompany(owner, reason) {
+        return await Offer.updateMany(
             { owner, isHidden: false },
             {
                 isHidden: true,
@@ -169,8 +169,8 @@ class OfferService {
             });
     }
 
-    _unhideByCompany(owner, reason) {
-        return Offer.updateMany(
+    async _unhideByCompany(owner, reason) {
+        return await Offer.updateMany(
             { owner, isHidden: true, hiddenReason: reason },
             {
                 isHidden: false,
@@ -248,8 +248,8 @@ class OfferService {
      * Builds an initial search query. Cannot be used when loading more offers.
      * Otherwise, use _buildSearchContinuationQuery().
      */
-    _buildInitialSearchQuery(value, showHidden, showAdminReason, filters) {
-        const offers = (value ? Offer.find({ "$and": [
+   async _buildInitialSearchQuery(value, showHidden, showAdminReason, filters) {
+        const offers =await (value ? Offer.find({ "$and": [
             this._buildFilterQuery(filters),
             { "$text": { "$search": value } }
         ] }, { score: { "$meta": "textScore" } }
@@ -263,10 +263,10 @@ class OfferService {
      * Builds a search continuation query. Only use this when loading more offers.
      * Otherwise, use _buildInitialSearchQuery().
      */
-    _buildSearchContinuationQuery(lastOfferId, lastOfferScore, value, showHidden, showAdminReason, filters) {
+   async _buildSearchContinuationQuery(lastOfferId, lastOfferScore, value, showHidden, showAdminReason, filters) {
         let offers;
         if (value) {
-            offers = Offer.aggregate([
+            offers = await Offer.aggregate([
                 { $match: { $text: { $search: value } } },
                 { $match: this._buildFilterQuery(filters) },
                 { $addFields: {
@@ -281,7 +281,7 @@ class OfferService {
                 { $match: showHidden ? {} : Offer.filterNonHidden() }
             ]);
         } else {
-            offers = Offer.find({ "$and": [
+            offers = await Offer.find({ "$and": [
                 this._buildFilterQuery(filters),
                 { _id: { "$gt": ObjectId(lastOfferId) } }
             ] });
@@ -348,7 +348,7 @@ class OfferService {
     }
 
     /**
-     * Encodes a query token, by taking the an id and FTS score if present, and encoding them in safe url base64
+     * Encodes a query token, by taking an id and FTS score if present, and encoding them in safe url base64
      * @param {*} id
      * @param {*} score
      */
